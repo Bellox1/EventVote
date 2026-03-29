@@ -21,6 +21,10 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         :root {
             --primary: #003229;
             --primary-light: #004D41;
@@ -311,14 +315,45 @@
             pointer-events: none;
         }
 
-        @media (max-width: 768px) {
-            .side-drawer {
-                max-width: 100%;
-            }
+        .menu-indent {
+            padding-left: 20px;
+            border-left: 1px solid rgba(212, 174, 109, 0.15);
+            margin-left: 8px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-            .desktop-only {
-                display: none !important;
-            }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        .drawer-sub-link {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drawer-sub-link:hover {
+            color: var(--accent);
+            padding-left: 5px;
+        }
+
+        .drawer-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--accent);
+            margin-bottom: 25px;
+            opacity: 0.6;
+            font-weight: 600;
         }
     </style>
     @yield('styles')
@@ -340,7 +375,7 @@
             this.lastScrollY = window.pageYOffset;
         });
     }
-}">
+} " x-init="init()">
 
     <!-- Drawer Overlay -->
     <div :class="{ 'is-open': mobileMenu }" @click="mobileMenu = false" class="drawer-overlay"></div>
@@ -353,47 +388,138 @@
                 [X]</button>
         </div>
 
-        <nav style="display: flex; flex-direction: column; flex: 1;">
+        <nav style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; padding-right: 10px;">
+            <div class="drawer-section-title">Navigation Principale</div>
             <a href="/" class="drawer-link {{ request()->is('/') ? 'active' : '' }}">Accueil</a>
-            <a href="{{ route('campaigns.index') }}"
-                class="drawer-link {{ request()->routeIs('campaigns.index') ? 'active' : '' }}">Sessions Actives</a>
+            
+            @php
+                $currentCampaign = null;
+                $slug = request()->route('slug');
+                if ($slug) {
+                    $currentCampaign = \App\Models\Campaign::where('slug', $slug)->first();
+                }
 
-            <div style="width: 30px; height: 1px; background: var(--accent); margin: 25px 0 35px;"></div>
+                $activeCampaigns = \App\Models\Campaign::where('status', 'active')
+                    ->with(['candidates' => function($q) {
+                        $q->where('status', 'accepted')
+                          ->orderByRaw('sort_order = 0')
+                          ->orderBy('sort_order')
+                          ->orderBy('name');
+                    }])->get();
+            @endphp
 
+            <!-- SECTION ÉVÉNEMENTS -->
+            <div x-data="{ openMain: @json(!!$currentCampaign), openCamp: @json($currentCampaign ? $currentCampaign->id : null) }" style="margin-bottom: 30px;">
+                <button @click="openMain = !openMain"
+                    style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 20px; text-align: left;">
+                    <span class="drawer-link" style="margin-bottom: 0; font-size: 2.2rem;">Événements</span>
+                    <svg style="width:18px; height:18px; transition: transform 0.4s; color: var(--accent);"
+                         :class="{ 'rotate-180': openMain }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div x-show="openMain" x-transition x-cloak class="menu-indent" style="margin-top: 0; padding-left: 25px; gap: 15px;">
+                    <a href="{{ route('campaigns.index') }}" class="drawer-sub-link" style="color: var(--accent); font-weight: 500; font-size: 1.2rem; margin-bottom: 10px;">
+                        ⟡ Voir tous les scrutins
+                    </a>
+                    
+                    @foreach($activeCampaigns as $camp)
+                        <div style="margin-bottom: 5px;">
+                            <button @click="openCamp === {{ $camp->id }} ? openCamp = null : openCamp = {{ $camp->id }}"
+                                style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 5px 0; opacity: 0.9;">
+                                <span style="font-size: 1.3rem; font-family:'Cormorant Garamond', serif; {{ $currentCampaign && $currentCampaign->id == $camp->id ? 'color: var(--accent);' : '' }}">
+                                    {{ Str::limit($camp->name, 25) }}
+                                </span>
+                                <svg style="width:12px; height:12px; transition: transform 0.3s; opacity: 0.5;"
+                                     :class="{ 'rotate-180': openCamp === {{ $camp->id }} }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <div x-show="openCamp === {{ $camp->id }}" x-transition x-cloak class="menu-indent" style="margin-top: 8px; gap: 10px;">
+                                <a href="{{ route('campaigns.show', $camp->slug) }}" class="drawer-sub-link" style="font-size: 1rem; color: var(--accent);">
+                                    <span>⟡</span> Vue d'ensemble
+                                </a>
+
+                                @foreach($camp->candidates as $c)
+                                    <a href="{{ route('candidates.show', [$camp->slug, $c->id]) }}" class="drawer-sub-link" style="font-size: 1rem; {{ request()->is('*/candidates/'.$c->id) ? 'color: white; font-weight: 500;' : '' }}">
+                                        <span>•</span> {{ $c->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div style="width: 30px; height: 1px; background: rgba(212, 174, 109, 0.3); margin: 10px 0 40px;"></div>
+
+            <!-- SECTION ESPACE MEMBRE -->
+            <div class="drawer-section-title">Privilèges & Compte</div>
+            
             @guest
                 <a href="{{ route('login') }}" class="drawer-link {{ request()->routeIs('login') ? 'active' : '' }}"
-                    style="font-size: 1.8rem;">Espace Membre</a>
+                    style="font-size: 1.8rem;">Se Connecter</a>
                 <a href="{{ route('register') }}" class="drawer-link {{ request()->routeIs('register') ? 'active' : '' }}"
-                    style="font-size: 1.8rem;">Nous rejoindre</a>
+                    style="font-size: 1.8rem;">Créer un Compte</a>
             @else
-                <a href="{{ route('dashboard') }}" class="drawer-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                    style="font-size: 1.8rem;">Mon Espace</a>
+                <div x-data="{ openUser: @json(request()->routeIs('dashboard') || request()->routeIs('admin.*')) }" style="margin-bottom: 25px;">
+                    <button @click="openUser = !openUser"
+                        style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 15px; text-align: left;">
+                        <span class="drawer-link" style="margin-bottom: 0; font-size: 1.8rem;">Mon Espace</span>
+                        <svg style="width:16px; height:16px; transition: transform 0.4s; color: var(--accent); opacity: 0.7;"
+                             :class="{ 'rotate-180': openUser }"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
 
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
+                    <div x-show="openUser" x-transition x-cloak class="menu-indent" style="gap: 12px;">
+                        <a href="{{ route('dashboard') }}" class="drawer-sub-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" style="font-size: 1.2rem;">
+                            Tableau de Bord
+                        </a>
 
-                <button type="button"
-                    @click="mobileMenu = false; Swal.fire({
-                        title: 'Déconnexion',
-                        text: 'Voulez-vous vraiment clore cette session d\'exception ?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#003229',
-                        cancelButtonColor: '#d4ae6d',
-                        confirmButtonText: 'Oui, me déconnecter',
-                        cancelButtonText: 'Rester connecté',
-                        background: '#fff8e7',
-                        color: '#003229'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('logout-form').submit();
-                        }
-                    })"
-                    style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--accent); background: none; border: none; padding: 0; cursor: pointer; opacity: 0.8; transition: opacity 0.3s; text-align: left;"
-                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                    Déconnexion
-                </button>
+                        @if(Auth::user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="drawer-sub-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" style="font-size: 1.2rem; color: var(--accent);">
+                                Panneau d'Administration
+                            </a>
+                        @endif
+
+                        <a href="{{ route('profile.edit') }}" class="drawer-sub-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="font-size: 1.2rem;">
+                            Mon Profil
+                        </a>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                            @csrf
+                        </form>
+
+                        <button type="button"
+                            @click="mobileMenu = false; Swal.fire({
+                                title: 'Déconnexion',
+                                text: 'Voulez-vous vraiment clore cette session d\'exception ?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: '#003229',
+                                cancelButtonColor: '#d4ae6d',
+                                confirmButtonText: 'Oui, me déconnecter',
+                                cancelButtonText: 'Rester connecté',
+                                background: '#fff8e7',
+                                color: '#003229'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    document.getElementById('logout-form').submit();
+                                }
+                            })"
+                            class="drawer-sub-link"
+                            style="background: none; border: none; padding: 4px 0; cursor: pointer; text-align: left; width: 100%; font-size: 1.2rem; color: #ff6b6b; opacity: 0.8;"
+                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
             @endguest
         </nav>
 
