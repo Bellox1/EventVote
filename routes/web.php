@@ -24,14 +24,34 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile.edit');
 // User restricted
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = Auth::user();
-        $myCampaigns = $user->campaigns()->latest()->get();
+        $contextLabel = 'Mes Sessions';
+        
+        // 1. Created campaigns
+        $displayCampaigns = $user->campaigns()->latest()->get();
+        
+        // 2. If none created, check participation
+        if ($displayCampaigns->isEmpty()) {
+            $votedCampaignIds = $user->votes()->pluck('campaign_id')->unique();
+            $displayCampaigns = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->latest()->get();
+            $contextLabel = 'Participations';
+        }
+        
+        // 3. If no participation, show all active
+        if ($displayCampaigns->isEmpty()) {
+            $displayCampaigns = \App\Models\Campaign::where('status', 'active')->latest()->get();
+            $contextLabel = 'Toutes les Sessions';
+        }
+
         $myVotes = $user->votes()->with(['campaign', 'candidate'])->latest()->get();
-        return view('dashboard', compact('myCampaigns', 'myVotes'));
+        return view('dashboard', [
+            'myCampaigns' => $displayCampaigns,
+            'myVotes' => $myVotes,
+            'contextLabel' => $contextLabel
+        ]);
     })->name('dashboard');
 
     Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');

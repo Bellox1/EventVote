@@ -331,18 +331,20 @@
 
         .drawer-sub-link {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.1rem;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.15rem;
+            color: #FFFFFF !important; /* Pure white */
             text-decoration: none;
-            transition: all 0.3s;
-            padding: 4px 0;
+            transition: all 0.2s;
+            padding: 8px 0;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            letter-spacing: 0.05em;
         }
 
-        .drawer-sub-link:hover {
-            color: var(--accent);
+        .drawer-sub-link:hover,
+        .drawer-sub-link:hover span {
+            color: var(--accent) !important;
             padding-left: 5px;
         }
 
@@ -354,6 +356,26 @@
             margin-bottom: 25px;
             opacity: 0.6;
             font-weight: 600;
+        }
+
+        /* Subtle Custom Scrollbar for Drawer Navigation */
+        nav::-webkit-scrollbar {
+            width: 4px; /* Even thinner */
+        }
+
+        nav::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        nav::-webkit-scrollbar-thumb {
+            background: rgba(212, 174, 109, 0.35); /* Muted/Lower Opacity gold */
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 174, 109, 0.6); /* Slightly more visible on hover */
         }
     </style>
     @yield('styles')
@@ -399,66 +421,107 @@
                     $currentCampaign = \App\Models\Campaign::where('slug', $slug)->first();
                 }
 
-                $activeCampaigns = \App\Models\Campaign::where('status', 'active')
-                    ->with(['candidates' => function($q) {
-                        $q->where('status', 'accepted')
-                          ->orderByRaw('sort_order = 0')
-                          ->orderBy('sort_order')
-                          ->orderBy('name');
-                    }])->get();
+                $user = Auth::user();
+                $allActiveCampaigns = \App\Models\Campaign::where('status', 'active')->latest()->get();
+                $myCreatedCampaigns = $user ? $user->campaigns()->latest()->get() : collect();
+                $myVotedCampaigns = collect();
+                if ($user && $myCreatedCampaigns->isEmpty()) {
+                    $votedIds = $user->votes()->pluck('campaign_id')->unique();
+                    $myVotedCampaigns = \App\Models\Campaign::whereIn('id', $votedIds)->latest()->get();
+                }
             @endphp
 
-            <!-- SECTION ÉVÉNEMENTS -->
-            <div x-data="{ openMain: @json(!!$currentCampaign), openCamp: @json($currentCampaign ? $currentCampaign->id : null) }" style="margin-bottom: 30px;">
-                <button @click="openMain = !openMain"
-                    style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 20px; text-align: left;">
-                    <span class="drawer-link" style="margin-bottom: 0; font-size: 2.2rem;">Événements</span>
-                    <svg style="width:18px; height:18px; transition: transform 0.4s; color: var(--accent);"
-                         :class="{ 'rotate-180': openMain }"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
+            <!-- SECTION ÉVÉNEMENTS GLOBAUX -->
+            @if($currentCampaign)
+                <div x-data="{ open: true }" style="margin-bottom: 25px;">
+                    <button @click="open = !open"
+                        style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 15px; text-align: left;">
+                        <span class="drawer-link" style="margin-bottom: 0; font-size: 2rem;">L'Événement</span>
+                        <svg style="width:16px; height:16px; transition: transform 0.4s; color: var(--accent);"
+                             :class="{ 'rotate-180': open }"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
 
-                <div x-show="openMain" x-transition x-cloak class="menu-indent" style="margin-top: 0; padding-left: 25px; gap: 15px;">
-                    <a href="{{ route('campaigns.index') }}" class="drawer-sub-link" style="color: var(--accent); font-weight: 500; font-size: 1.2rem; margin-bottom: 10px;">
-                        ⟡ Voir tous les scrutins
-                    </a>
-                    
-                    @foreach($activeCampaigns as $camp)
-                        <div style="margin-bottom: 5px;">
-                            <button @click="openCamp === {{ $camp->id }} ? openCamp = null : openCamp = {{ $camp->id }}"
-                                style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 5px 0; opacity: 0.9;">
-                                <span style="font-size: 1.3rem; font-family:'Cormorant Garamond', serif; {{ $currentCampaign && $currentCampaign->id == $camp->id ? 'color: var(--accent);' : '' }}">
-                                    {{ Str::limit($camp->name, 25) }}
-                                </span>
-                                <svg style="width:12px; height:12px; transition: transform 0.3s; opacity: 0.5;"
-                                     :class="{ 'rotate-180': openCamp === {{ $camp->id }} }"
-                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-
-                            <div x-show="openCamp === {{ $camp->id }}" x-transition x-cloak class="menu-indent" style="margin-top: 8px; gap: 10px;">
-                                <a href="{{ route('campaigns.show', $camp->slug) }}" class="drawer-sub-link" style="font-size: 1rem; color: var(--accent);">
-                                    <span>⟡</span> Vue d'ensemble
-                                </a>
-
-                                @foreach($camp->candidates as $c)
-                                    <a href="{{ route('candidates.show', [$camp->slug, $c->id]) }}" class="drawer-sub-link" style="font-size: 1rem; {{ request()->is('*/candidates/'.$c->id) ? 'color: white; font-weight: 500;' : '' }}">
-                                        <span>•</span> {{ $c->name }}
-                                    </a>
-                                @endforeach
-                            </div>
+                    <div x-show="open" x-transition x-cloak class="menu-indent" style="margin-top: 0; padding-left: 20px; gap: 10px;">
+                        <div style="font-size: 1.2rem; font-family:'Cormorant Garamond', serif; color: var(--accent); margin-bottom: 5px;">
+                            {{ $currentCampaign->name }}
                         </div>
-                    @endforeach
+                        
+                        <div class="menu-indent" style="margin-top: 0; gap: 8px;">
+                            <a href="{{ route('campaigns.show', $currentCampaign->slug) }}" class="drawer-sub-link" style="font-size: 0.95rem; color: var(--accent);">
+                                <span>⟡</span> Vue Globale
+                            </a>
+                            @foreach($currentCampaign->candidates as $c)
+                                <a href="{{ route('candidates.show', [$currentCampaign->slug, $c->id]) }}" class="drawer-sub-link" style="font-size: 0.95rem;">
+                                    <span>•</span> {{ $c->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                        <a href="{{ route('campaigns.index') }}" class="drawer-sub-link" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">
+                            ⟡ Explorer tout
+                        </a>
+                    </div>
                 </div>
-            </div>
+            @else
+                <!-- Toutes les sessions -->
+                <div x-data="{ open: @json(!$user) }" style="margin-bottom: 25px;">
+                    <button @click="open = !open"
+                        style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 12px; text-align: left;">
+                        <span class="drawer-link" style="margin-bottom: 0; font-size: 2rem;">Événements</span>
+                        <svg style="width:14px; height:14px; transition: transform 0.4s; color: var(--accent); opacity: 0.5;"
+                             :class="{ 'rotate-180': open }"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
 
-            <div style="width: 30px; height: 1px; background: rgba(212, 174, 109, 0.3); margin: 10px 0 40px;"></div>
+                    <div x-show="open" x-transition x-cloak class="menu-indent" style="padding-left: 20px; gap: 12px;">
+                        <a href="{{ route('campaigns.index') }}" class="drawer-sub-link" style="color: var(--accent); font-weight: 500;">⟡ Tous les scrutins</a>
+                        @foreach($allActiveCampaigns as $camp)
+                             <a href="{{ route('campaigns.show', $camp->slug) }}" class="drawer-sub-link" style="font-size: 1rem;">• {{ $camp->name }}</a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($user && ($myCreatedCampaigns->isNotEmpty() || $myVotedCampaigns->isNotEmpty()))
+                <!-- Mes Participations Privées -->
+                <div x-data="{ open: true }" style="margin-bottom: 25px;">
+                    <div style="display:flex; justify-content:space-between; align-items: center; width:100%; margin-bottom: 12px;">
+                        <a href="{{ route('dashboard') }}" class="drawer-link" style="margin-bottom: 0; font-size: 1.8rem; color: var(--accent); flex-grow: 1;">Mes Accès</a>
+                        
+                        <button @click="open = !open"
+                            style="background:none; border:none; color:var(--accent); cursor:pointer; padding: 5px; opacity: 0.7;"
+                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                            <svg style="width:20px; height:20px; transition: transform 0.4s;"
+                                 :class="{ 'rotate-180': open }"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div x-show="open" class="menu-indent" style="padding-left: 20px; gap: 10px;">
+                        @foreach($myCreatedCampaigns as $camp)
+                            <a href="{{ route('campaigns.show', $camp->slug) }}" class="drawer-sub-link" style="font-size: 1rem;">
+                                 <span style="color: white; font-weight: 600;">[voir]</span> {{ $camp->name }}
+                            </a>
+                        @endforeach
+                        @foreach($myVotedCampaigns as $camp)
+                            <a href="{{ route('campaigns.show', $camp->slug) }}" class="drawer-sub-link" style="font-size: 1rem;">
+                                 <span style="opacity: 0.5;">[Voté]</span> {{ $camp->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <div style="width: 30px; height: 1px; background: rgba(212, 174, 109, 0.3); margin: 15px 0 30px;"></div>
 
             <!-- SECTION ESPACE MEMBRE -->
-            <div class="drawer-section-title">Privilèges & Compte</div>
+            <div class="drawer-section-title">Espace Personnel</div>
             
             @guest
                 <a href="{{ route('login') }}" class="drawer-link {{ request()->routeIs('login') ? 'active' : '' }}"
@@ -466,32 +529,23 @@
                 <a href="{{ route('register') }}" class="drawer-link {{ request()->routeIs('register') ? 'active' : '' }}"
                     style="font-size: 1.8rem;">Créer un Compte</a>
             @else
-                <div x-data="{ openUser: @json(request()->routeIs('dashboard') || request()->routeIs('admin.*')) }" style="margin-bottom: 25px;">
-                    <button @click="openUser = !openUser"
+                <div x-data="{ open: false }">
+                    <button @click="open = !open"
                         style="display:flex; justify-content:space-between; align-items: center; width:100%; background:none; border:none; color:white; cursor:pointer; padding: 0; margin-bottom: 15px; text-align: left;">
-                        <span class="drawer-link" style="margin-bottom: 0; font-size: 1.8rem;">Mon Espace</span>
-                        <svg style="width:16px; height:16px; transition: transform 0.4s; color: var(--accent); opacity: 0.7;"
-                             :class="{ 'rotate-180': openUser }"
+                        <span class="drawer-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" style="margin-bottom: 0; font-size: 1.8rem;">Mon Espace</span>
+                        <svg style="width:14px; height:14px; transition: transform 0.4s; color: var(--accent); opacity: 0.5;"
+                             :class="{ 'rotate-180': open }"
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
 
-                    <div x-show="openUser" x-transition x-cloak class="menu-indent" style="gap: 12px;">
-                        <a href="{{ route('dashboard') }}" class="drawer-sub-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" style="font-size: 1.2rem;">
-                            Tableau de Bord
-                        </a>
-
+                    <div x-show="open" x-transition x-cloak class="menu-indent" style="gap: 10px; margin-bottom: 20px;">
+                        <a href="{{ route('dashboard') }}" class="drawer-sub-link" style="font-size: 1.1rem;">Tableau de Bord</a>
                         @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="drawer-sub-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" style="font-size: 1.2rem; color: var(--accent);">
-                                Panneau d'Administration
-                            </a>
+                            <a href="{{ route('admin.dashboard') }}" class="drawer-sub-link" style="font-size: 1.1rem; color: var(--accent);">Administration</a>
                         @endif
-
-                        <a href="{{ route('profile.edit') }}" class="drawer-sub-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="font-size: 1.2rem;">
-                            Mon Profil
-                        </a>
-
+                        
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>
@@ -514,7 +568,7 @@
                                 }
                             })"
                             class="drawer-sub-link"
-                            style="background: none; border: none; padding: 4px 0; cursor: pointer; text-align: left; width: 100%; font-size: 1.2rem; color: #ff6b6b; opacity: 0.8;"
+                            style="background: none; border: none; padding: 0; cursor: pointer; text-align: left; font-size: 1.1rem; color: #ff6b6b; opacity: 0.8; margin-top: 10px;"
                             onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
                             Déconnexion
                         </button>
