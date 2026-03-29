@@ -90,4 +90,41 @@ class CandidateController extends Controller
 
         return back()->with('success', 'Candidature mise à jour avec l\'ordre défini.');
     }
+
+    public function destroy($id)
+    {
+        $candidate = Candidate::findOrFail($id);
+        
+        if ($candidate->campaign->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+        
+        $candidate->delete();
+        return back()->with('success', 'Candidat archivé avec succès.');
+    }
+
+    public function restore($id)
+    {
+        $candidate = Candidate::withTrashed()->findOrFail($id);
+        
+        if ($candidate->campaign->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+        
+        $candidate->restore();
+        return back()->with('success', 'Candidat restauré avec succès.');
+    }
+
+    public function forceDestroy($id)
+    {
+        $candidate = Candidate::withTrashed()->findOrFail($id);
+        
+        if ($candidate->campaign->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+        
+        // Optionally delete files from storage here
+        $candidate->forceDelete();
+        return back()->with('success', 'Candidat supprimé définitivement.');
+    }
 }

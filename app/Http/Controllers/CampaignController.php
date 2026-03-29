@@ -40,7 +40,12 @@ class CampaignController extends Controller
             abort(403, 'Campagne indisponible.');
         }
 
-        $candidates = $campaign->candidates()->where('status', 'accepted')->orderBy('sort_order')->orderBy('name')->get();
+        $candidates = $campaign->candidates()
+            ->where('status', 'accepted')
+            ->orderByRaw('sort_order = 0')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
         $topCandidates = $campaign->candidates()->where('status', 'accepted')->orderByDesc('votes_count')->limit(3)->get();
 
         return view('campaigns.show', compact('campaign', 'candidates', 'topCandidates'));
@@ -105,5 +110,24 @@ class CampaignController extends Controller
         }
 
         return back()->withErrors(['code' => 'Code de campagne invalide.']);
+    }
+
+    public function updateSettings(Request $request, $slug)
+    {
+        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        
+        $request->validate([
+            'status' => 'required|in:active,paused,ended',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date|after_or_equal:start_at',
+        ]);
+
+        $campaign->update([
+            'status' => $request->status,
+            'start_at' => $request->filled('start_at') ? $request->start_at : null,
+            'end_at' => $request->filled('end_at') ? $request->end_at : null,
+        ]);
+
+        return back()->with('success', 'Paramètres temporels mis à jour avec succès.');
     }
 }

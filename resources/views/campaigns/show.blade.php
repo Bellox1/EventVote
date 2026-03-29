@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+    @php
+        $totalVotes = $campaign->votes()->count();
+    @endphp
+
     <div style="margin-bottom: 60px;">
         <a href="{{ route('campaigns.index') }}"
             style="text-decoration: none; color: var(--accent); font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 15px; text-transform: uppercase; letter-spacing: 0.3em; transition: opacity 0.3s;"
@@ -44,7 +48,7 @@
             <div style="display: flex; gap: 40px; border-top: 1px solid var(--border); padding-top: 40px;">
                 <div>
                     <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; margin-bottom: 10px;">Voix Totales</div>
-                    <div style="font-size: 2.5rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $campaign->votes()->count() }}</div>
+                    <div style="font-size: 2.5rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $totalVotes }}</div>
                 </div>
                 <div style="width: 1px; background: var(--border);"></div>
                 <div>
@@ -63,63 +67,85 @@
             position: absolute; bottom: 0; left: 20px; right: 20px; 
             opacity: 0; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: 30;
         }
-        .btn-vote {
-            width: 100%; padding: 15px; background: white; color: var(--primary); 
+        .btn-vote, .btn-view {
+            width: 100%; padding: 15px 5px; 
             border: none; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.2em; 
             text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
         }
-        .btn-vote:hover { background: var(--accent); color: white; }
+        .btn-vote { background: var(--accent); color: white; }
+        .btn-vote:hover { background: var(--primary); color: white; }
+        
+        .btn-view { background: rgba(255,255,255,0.95); color: var(--primary); }
+        .btn-view:hover { background: var(--accent); color: white; }
     </style>
 
     <!-- Elite Selection (Top 3 Leaders) -->
     @if($topCandidates->count() > 0)
-    <div style="background: #F9F6F0; margin: 0 -100px 120px; padding: 100px;">
-        <div style="max-width: 1400px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 80px;">
-                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; display: block; margin-bottom: 20px;">Le Trio de Tête</span>
-                <h2 style="font-size: 3rem; color: var(--primary); font-family: 'Cormorant Garamond', serif;">Élite du <span style="font-style: italic;">Scrutin.</span></h2>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px;">
-                @foreach($topCandidates as $index => $candidate)
-                <div style="position: relative; text-align: center;">
-                    <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; font-size: 1.2rem; font-family: 'Cormorant Garamond', serif;">
-                        {{ $index + 1 }}
+        @if ($totalVotes > 0)
+            <div style="background: #F9F6F0; margin: 0 -100px 120px; padding: 100px;">
+                <div style="max-width: 1400px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 80px;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; display: block; margin-bottom: 20px;">Le Trio de Tête</span>
+                        <h2 style="font-size: 3rem; color: var(--primary); font-family: 'Cormorant Garamond', serif;">Élite du <span style="font-style: italic;">Scrutin.</span></h2>
                     </div>
-                    
-                    <div class="candidate-card" style="position: relative; aspect-ratio: 4/5; overflow: hidden; border-radius: 4px; margin-bottom: 24px; box-shadow: var(--shadow-soft); background: var(--primary); cursor: pointer;">
-                        <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; height: 100%;">
-                             @if($candidate->image_path)
-                                <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" 
-                                     class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
-                             @elseif($candidate->video_path)
-                                <video autoplay loop muted playsinline class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
-                                    <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
-                                </video>
-                             @endif
-                             <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4));"></div>
-                        </a>
 
-                         <div class="voting-overlay">
-                            @if ($campaign->isActive())
-                                <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0;">
-                                    @csrf
-                                    <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
-                                    <button type="submit" class="btn-vote">VOTER POUR {{ $candidate->name }}</button>
-                                </form>
-                            @endif
-                         </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px;">
+                        @foreach($topCandidates as $index => $candidate)
+                        <div style="position: relative; text-align: center;">
+                            <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; font-size: 1.2rem; font-family: 'Cormorant Garamond', serif;">
+                                {{ $index + 1 }}
+                            </div>
+                            
+                            <div class="candidate-card" style="position: relative; aspect-ratio: 4/5; overflow: hidden; border-radius: 4px; margin-bottom: 24px; box-shadow: var(--shadow-soft); background: var(--primary); cursor: pointer;">
+                                <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; height: 100%;">
+                                     @if($candidate->image_path)
+                                        <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" 
+                                             class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
+                                     @elseif($candidate->video_path)
+                                        <video autoplay loop muted playsinline class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
+                                            <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
+                                        </video>
+                                     @endif
+                                     <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4));"></div>
+                                </a>
+
+                                 <div class="voting-overlay">
+                                    @if ($campaign->isActive())
+                                        <div style="display: flex; gap: 10px; width: 100%;">
+                                            <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0; flex: 1;">
+                                                @csrf
+                                                <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
+                                                <button type="submit" class="btn-vote" style="flex: 1;">VOTER</button>
+                                            </form>
+                                            <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" class="btn-view" style="flex: 1;">VOIR LE PROFIL</a>
+                                        </div>
+                                    @endif
+                                 </div>
+                            </div>
+                            
+                            <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="text-decoration: none;">
+                                <h4 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; font-family: 'Cormorant Garamond', serif;">{{ $candidate->name }}</h4>
+                            </a>
+                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase;">
+                                {{ $candidate->votes_count }} voix ({{ $totalVotes > 0 ? round(($candidate->votes_count / $totalVotes) * 100, 1) : 0 }}%)
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
-                    
-                    <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="text-decoration: none;">
-                        <h4 style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; font-family: 'Cormorant Garamond', serif;">{{ $candidate->name }}</h4>
-                    </a>
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase;">{{ $candidate->votes_count }} voix exprimées</div>
                 </div>
-                @endforeach
             </div>
-        </div>
-    </div>
+        @else
+            <!-- Compact Alert Banner for 0 Votes -->
+            <div style="margin-bottom: 80px; padding: 25px 40px; border: 1px dashed var(--accent); border-radius: 4px; background: rgba(212, 174, 109, 0.05); display: flex; align-items: center; justify-content: center; gap: 20px; box-shadow: var(--shadow-soft);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                <div style="color: var(--primary); font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600;">
+                    Pas encore de leader pour le moment. <span style="font-family: 'Jost', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-left: 10px;">Rendez un ou une candidat(e) leader par votre vote !</span>
+                </div>
+            </div>
+        @endif
     @endif
 
     <!-- Full Gallery (Ordered by sort_order) -->
@@ -150,11 +176,14 @@
                         <!-- Voting Action (Hover) -->
                         <div class="voting-overlay">
                             @if ($campaign->isActive())
-                                <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0;">
-                                    @csrf
-                                    <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
-                                    <button type="submit" class="btn-vote">SÉLECTIONNER CE CHOIX</button>
-                                </form>
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0; flex: 1;">
+                                        @csrf
+                                        <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
+                                        <button type="submit" class="btn-vote" style="flex: 1;">VOTER</button>
+                                    </form>
+                                    <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" class="btn-view" style="flex: 1;">VOIR ({{ $totalVotes > 0 ? round(($candidate->votes_count / $totalVotes) * 100, 1) : 0 }}%)</a>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -167,7 +196,7 @@
                         <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
                             <div style="color: var(--accent); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;">Ordre: {{ $candidate->sort_order }}</div>
                             <div style="width: 4px; height: 4px; background: var(--border); border-radius: 50%;"></div>
-                            <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">{{ $candidate->votes_count }} Voix</div>
+                            <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">{{ $candidate->votes_count }} Voix ({{ $totalVotes > 0 ? round(($candidate->votes_count / $totalVotes) * 100, 1) : 0 }}%)</div>
                         </div>
                     </div>
                 </div>

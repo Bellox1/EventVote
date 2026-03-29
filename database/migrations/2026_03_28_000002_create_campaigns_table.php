@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image_path')->nullable();
             $table->string('video_url')->nullable();
-            $table->enum('status', ['pending', 'active', 'rejected', 'closed'])->default('pending');
+            $table->string('status')->default('pending');
             $table->boolean('is_private')->default(false);
             $table->string('password')->nullable();
             $table->timestamp('start_at')->nullable();

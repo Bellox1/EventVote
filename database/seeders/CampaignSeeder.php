@@ -12,13 +12,23 @@ class CampaignSeeder extends Seeder
 {
     public function run()
     {
-        $admin = User::where('email', '=', 'admin@example.com')->first();
+        $admin = User::where('email', '=', 'admin@vote.com')->first();
         if (!$admin) {
             $admin = User::create([
                 'name' => 'Admin',
-                'email' => 'admin@example.com',
+                'email' => 'admin@vote.com',
                 'password' => bcrypt('password'),
                 'role' => 'admin'
+            ]);
+        }
+
+        $userOne = User::where('email', '=', 'user@vote.com')->first();
+        if (!$userOne) {
+            $userOne = User::create([
+                'name' => 'User One',
+                'email' => 'user@vote.com',
+                'password' => bcrypt('password'),
+                'role' => 'user'
             ]);
         }
 
@@ -58,7 +68,7 @@ class CampaignSeeder extends Seeder
             $name = ($isWithImage ? 'Promotion ' : 'Excellence ') . Str::random(5);
             
             $campaign = Campaign::create([
-                'user_id' => $admin->id,
+                'user_id' => ($i === 1) ? $userOne->id : $admin->id,
                 'name' => $name,
                 'slug' => Str::slug($name) . '-' . Str::random(3),
                 'code' => strtoupper(Str::random(8)),
@@ -87,7 +97,7 @@ class CampaignSeeder extends Seeder
 
         // Reine ESGIS Campaign (Created last to be first in latest() queries)
         $reineEsgis = Campaign::create([
-            'user_id' => $admin->id,
+            'user_id' => $userOne->id,
             'name' => 'Reine ESGIS',
             'slug' => 'reine-esgis-' . Str::random(5),
             'code' => 'REINE2026',
@@ -114,7 +124,7 @@ class CampaignSeeder extends Seeder
                 'description' => 'Un profil d\'exception pour le scrutin Reine ESGIS 2026.',
                 'image_path' => $img,
                 'video_path' => null,
-                'status' => 'accepted'
+                'status' => $index < 2 ? 'pending' : 'accepted'
             ]);
         }
     }

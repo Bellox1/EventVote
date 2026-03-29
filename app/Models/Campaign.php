@@ -45,7 +45,7 @@ class Campaign extends Model
 
     public function allCandidates()
     {
-        return $this->hasMany(Candidate::class);
+        return $this->hasMany(Candidate::class)->withTrashed();
     }
 
     public function votes()

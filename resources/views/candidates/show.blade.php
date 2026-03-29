@@ -3,6 +3,10 @@
 @section('title', $candidate->name . ' – ' . $campaign->name)
 
 @section('content')
+    @php
+        $totalVotes = $campaign->votes()->count();
+    @endphp
+
     <div style="margin-bottom: 40px;">
         <a href="{{ route('campaigns.show', $campaign->slug) }}"
             style="text-decoration: none; color: var(--accent); font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 15px; text-transform: uppercase; letter-spacing: 0.3em; transition: opacity 0.3s;"
@@ -76,7 +80,10 @@
                     <div style="display: flex; gap: 80px; margin-bottom: 70px;">
                         <div>
                             <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; color: rgba(255,255,255,0.6); margin-bottom: 12px;">Total de Voix</div>
-                            <div style="font-size: 3.5rem; font-family: 'Cormorant Garamond', serif; color: white;">{{ $candidate->votes_count }}</div>
+                            <div style="font-size: 3.5rem; font-family: 'Cormorant Garamond', serif; color: white;">
+                                {{ $candidate->votes_count }}
+                                <span style="font-size: 1.5rem; color: var(--accent); font-weight: 600; font-family: 'Jost', sans-serif;">({{ $totalVotes > 0 ? round(($candidate->votes_count / $totalVotes) * 100, 1) : 0 }}%)</span>
+                            </div>
                         </div>
                         <div style="width: 1px; background: rgba(212, 174, 109, 0.2);"></div>
                         <div>
@@ -141,13 +148,15 @@
 
         <!-- 3. FULLSCREEN GALLERY OVERLAY -->
         <div x-show="showGallery" 
-             style="position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; flex-direction: column;"
+             style="position: fixed; inset: 0; z-index: 99999;"
              x-transition.opacity.duration.300ms>
              
-            <!-- Close Button -->
-            <button @click="close()" style="position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; font-size: 1.5rem; transition: all 0.3s;" onmouseover="this.style.background='var(--accent)'; this.style.borderColor='var(--accent)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+            <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column;">
+                
+                <!-- Close Button -->
+                <button @click="close()" style="position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; font-size: 1.5rem; transition: all 0.3s;" onmouseover="this.style.background='var(--accent)'; this.style.borderColor='var(--accent)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
 
             <!-- Media Showcase Container -->
             <div style="flex: 1; position: relative; width: 100%; min-height: 0; display: flex; align-items: center; justify-content: center;">
@@ -162,23 +171,16 @@
                 </button>
 
                 <!-- THE CONTENT -->
-                <div style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden;">
-                    <template x-for="(item, index) in items" :key="index">
-                        <div x-show="activeIdx === index" 
-                             x-transition.opacity.scale.95.duration.500ms
-                             style="position: absolute; inset: 0; width: 100%; height: 100%;">
-                            
-                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                                <!-- Image Display -->
-                                <img x-show="item.type === 'image'" :src="item.type === 'image' ? item.path : ''" style="max-width: 90vw; max-height: 80vh; border-radius: 4px; box-shadow: 0 40px 100px rgba(0,0,0,0.5); object-fit: contain;">
+                <div x-show="items.length > 0" style="position: absolute; inset: 0; pointer-events: none;">
+                    <template x-if="items[activeIdx] && items[activeIdx].type === 'image'">
+                        <img :src="items[activeIdx].path" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90vw; max-height: 85vh; box-shadow: 0 40px 100px rgba(0,0,0,0.5); object-fit: contain; border-radius: 4px; pointer-events: auto;">
+                    </template>
 
-                                <!-- Video Display -->
-                                <video x-show="item.type === 'video'" controls autoplay playsinline :src="item.type === 'video' ? item.path : ''" 
-                                       @ended="next()"
-                                       style="max-width: 90vw; max-height: 80vh; border-radius: 4px; box-shadow: 0 40px 100px rgba(0,0,0,0.5); object-fit: contain;">
-                                </video>
-                            </div>
-                        </div>
+                    <template x-if="items[activeIdx] && items[activeIdx].type === 'video'">
+                        <video controls autoplay playsinline :src="items[activeIdx].path" 
+                               @ended="next()"
+                               style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90vw; max-height: 85vh; box-shadow: 0 40px 100px rgba(0,0,0,0.5); object-fit: contain; border-radius: 4px; pointer-events: auto;">
+                        </video>
                     </template>
                 </div>
             </div>
@@ -196,6 +198,7 @@
                         </div>
                     </template>
                 </div>
+            </div>
             </div>
         </div>
     </div>

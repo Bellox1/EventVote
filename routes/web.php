@@ -37,11 +37,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
     Route::get('/campaigns/{slug}/manage', [CampaignController::class, 'manage'])->name('campaigns.manage');
+    Route::put('/campaigns/{slug}/settings', [CampaignController::class, 'updateSettings'])->name('campaigns.settings');
     
     // Candidate applications
     Route::get('/campaigns/{slug}/apply', [CandidateController::class, 'apply'])->name('candidates.apply');
     Route::post('/campaigns/{slug}/apply', [CandidateController::class, 'storeApply']);
     Route::post('/candidate-applications/{id}', [CandidateController::class, 'manageApplication'])->name('candidate-applications.manage');
+    Route::delete('/candidates/{id}/archive', [CandidateController::class, 'destroy'])->name('candidates.archive');
+    Route::post('/candidates/{id}/restore', [CandidateController::class, 'restore'])->name('candidates.restore');
+    Route::delete('/candidates/{id}/force', [CandidateController::class, 'forceDestroy'])->name('candidates.force');
 });
 
 // Campaign and Vote
