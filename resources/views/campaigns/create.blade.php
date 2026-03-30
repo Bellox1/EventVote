@@ -36,18 +36,39 @@
                 
                 <div>
                     <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Nom de la Campagne</label>
-                    <input type="text" name="name" required placeholder="EX: VOTE PRÉSIDENT CLUB 2026" autofocus
+                    <input type="text" name="name" value="{{ old('name') }}" required placeholder="EX: VOTE PRÉSIDENT CLUB 2026" autofocus
                         style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px;">
                 </div>
 
                 <div>
                     <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Description / Objectifs</label>
                     <textarea name="description" rows="4" placeholder="Veuillez décrire l'enjeu de ce scrutin..."
-                        style="width: 100%; border: 1px solid var(--border); padding: 20px 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: vertical; min-height: 150px;"></textarea>
+                        style="width: 100%; border: 1px solid var(--border); padding: 20px 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: vertical; min-height: 150px;">{{ old('description') }}</textarea>
                 </div>
             </div>
 
-            <!-- Section 2: Programmation Temporelle (Optionnelle) -->
+            <!-- Section 2: Finance & Monétisation -->
+            <div style="display: flex; flex-direction: column; gap: 35px;">
+                <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Finance & Monétisation</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                    <div>
+                        <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Prix d'un Vote (En Devise)</label>
+                        <input type="number" name="vote_price" value="{{ old('vote_price', 100) }}" required min="0" placeholder="Ex: 100"
+                            style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px;">
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; font-style: italic;">Montant unitaire du vote (0 pour gratuit).</div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Compte de Reversement</label>
+                        <input type="text" name="bank_account" value="{{ old('bank_account') }}" placeholder="Ex: TMoney 90000000 / Flooz..."
+                            style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px;">
+                        <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; font-style: italic;">Ce champ restera confidentiel (entreprise).</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Programmation Temporelle (Optionnelle) -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                 <div style="grid-column: span 2; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Temporalité (Optionnel)</div>
                 
@@ -64,7 +85,7 @@
                 </div>
             </div>
 
-            <!-- Section 3: Médias -->
+            <!-- Section 4: Médias -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                 <div style="grid-column: span 2; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Identité Visuelle</div>
                 

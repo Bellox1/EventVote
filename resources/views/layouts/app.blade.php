@@ -541,7 +541,8 @@
                     </button>
 
                     <div x-show="open" x-transition x-cloak class="menu-indent" style="gap: 10px; margin-bottom: 20px;">
-                        <a href="{{ route('dashboard') }}" class="drawer-sub-link" style="font-size: 1.1rem;">Tableau de Bord</a>
+                        <a href="{{ route('dashboard') }}" class="drawer-sub-link {{ request()->routeIs('dashboard') ? 'active-gold' : '' }}" style="font-size: 1.1rem;">Tableau de Bord</a>
+                        <a href="{{ route('profile.show') }}" class="drawer-sub-link {{ request()->routeIs('profile.show') ? 'active-gold' : '' }}" style="font-size: 1.1rem;">Mon Profil</a>
                         @if(Auth::user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="drawer-sub-link" style="font-size: 1.1rem; color: var(--accent);">Administration</a>
                         @endif
@@ -622,6 +623,13 @@
                             Se Connecter
                         </a>
                     @else
+                        <a href="{{ route('profile.show') }}" class="explorer-text"
+                            :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }"
+                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s; margin-right: 25px;"
+                            onmouseover="this.style.color='var(--accent)'"
+                            onmouseout="this.style.color=(scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)'">
+                            Profil
+                        </a>
                         <a href="{{ route('dashboard') }}" class="explorer-text"
                             :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }"
                             style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s;"

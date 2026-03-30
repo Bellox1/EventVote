@@ -12,7 +12,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'campaign_id', 'user_id', 'name', 'description', 
-        'image_path', 'video_path', 'status', 'votes_count', 'sort_order'
+        'image_path', 'video_path', 'status', 'votes_count', 'sort_order', 'rejection_reason'
     ];
 
     public function campaign()

@@ -13,7 +13,7 @@ class Campaign extends Model
     protected $fillable = [
         'user_id', 'name', 'slug', 'code', 'description', 
         'image_path', 'video_path', 'status', 'is_private', 
-        'password', 'start_at', 'end_at', 'rejection_reason'
+        'password', 'start_at', 'end_at', 'rejection_reason', 'bank_account', 'vote_price'
     ];
 
     protected $casts = [

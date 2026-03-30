@@ -3,6 +3,12 @@
 @section('title', 'Gérer – ' . $campaign->name)
 
 @section('content')
+<div style="margin-bottom: 20px;">
+    <a href="{{ route('dashboard') }}" style="display: inline-flex; align-items: center; gap: 10px; color: var(--accent); text-decoration: none; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s;" onmouseover="this.style.transform='translateX(-5px)'" onmouseout="this.style.transform='translateX(0)'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Retour au Tableau de Bord
+    </a>
+</div>
 <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 40px; margin-bottom: 80px; border-bottom: 1px solid var(--border); padding-bottom: 40px;">
     <div>
         <div style="font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 16px;">Administration du Scrutin</div>
@@ -149,18 +155,26 @@
                 <div class="card" style="padding: 40px; border: none; background: white;">
                     <div style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap;">
                         <!-- Media Preview -->
-                        <div style="width: 140px; height: 180px; border-radius: 8px; overflow: hidden; background: var(--border); box-shadow: var(--shadow-soft); flex-shrink: 0; position: relative;">
+                        <div style="display: flex; gap: 15px; flex-shrink: 0;">
                             @if($candidate->image_path)
-                                <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            @elseif($candidate->video_path)
-                                <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;">
-                                    <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
-                                </video>
-                                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 4px; color: white;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                <div style="width: 140px; height: 180px; border-radius: 8px; overflow: hidden; background: var(--border); box-shadow: var(--shadow-soft);">
+                                    <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-                            @else
-                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; background: var(--accent); font-weight: bold; font-family: 'Cormorant Garamond', serif; font-size: 3rem;">
+                            @endif
+
+                            @if($candidate->video_path)
+                                <div style="width: 240px; height: 180px; border-radius: 8px; overflow: hidden; background: #000; box-shadow: var(--shadow-soft); position: relative;">
+                                    <video controls style="width: 100%; height: 100%; object-fit: cover;">
+                                        <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
+                                    </video>
+                                    <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 4px; color: white; display: flex;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!$candidate->image_path && !$candidate->video_path)
+                                <div style="width: 140px; height: 180px; display: flex; align-items: center; justify-content: center; color: white; background: var(--accent); font-weight: bold; font-family: 'Cormorant Garamond', serif; font-size: 3rem; border-radius: 8px;">
                                     {{ substr($candidate->name, 0, 1) }}
                                 </div>
                             @endif
@@ -185,12 +199,13 @@
                         <div style="display: flex; gap: 16px;">
                             <input type="hidden" name="status" value="accepted">
                             <button type="submit" class="btn btn-primary" style="flex: 2; font-size: 0.75rem; padding: 18px;">Approuver la demande</button>
-                            <button type="button" @click="if(confirm('Refuser cette candidature ?')) { $el.nextElementSibling.submit() }" class="btn btn-outline" style="flex: 1; font-size: 0.75rem; padding: 18px; border-width: 1px;">Décliner</button>
+                            <button type="button" @click="Swal.fire({ title: 'Refuser ce candidat ?', text: 'Optionnel. Vous pouvez fournir un motif au candidat.', input: 'textarea', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff4444' }).then((r) => { if (r.isConfirmed) { document.getElementById('reject-reason-{{ $candidate->id }}').value = r.value; document.getElementById('reject-form-{{ $candidate->id }}').submit(); } })" class="btn btn-outline" style="flex: 1; font-size: 0.75rem; padding: 18px; border-width: 1px;">Décliner</button>
                         </div>
                     </form>
-                    <form action="{{ route('candidate-applications.manage', $candidate->id) }}" method="POST" style="display: none;">
+                    <form id="reject-form-{{ $candidate->id }}" action="{{ route('candidate-applications.manage', $candidate->id) }}" method="POST" style="display: none;">
                         @csrf
                         <input type="hidden" name="status" value="rejected">
+                        <input type="hidden" name="rejection_reason" id="reject-reason-{{ $candidate->id }}">
                     </form>
                 </div>
             @empty
@@ -202,6 +217,49 @@
         </div>
     </div>
     </div>
+    <!-- Rejected Applications -->
+    <div style="margin-top: 60px;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 40px;">
+            <div style="width: 40px; height: 1px; background: #dc2626;"></div>
+            <h2 style="font-size: 2rem; color: #dc2626; font-weight: 400; margin: 0;">Candidatures Rejetées</h2>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            @php $rejected = $allCandidates->where('status', 'rejected')->whereNull('deleted_at'); @endphp
+            @forelse($rejected as $candidate)
+                <div class="card" style="padding: 30px; border: none; background: #fef2f2; border-left: 4px solid #ef4444;">
+                    <div style="display: flex; gap: 20px;">
+                        <!-- Media Preview -->
+                        <div style="width: 80px; height: 100px; border-radius: 8px; overflow: hidden; background: var(--border); box-shadow: var(--shadow-soft); flex-shrink: 0;">
+                            @if($candidate->image_path)
+                                <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            @else
+                                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; background: var(--text-dim); font-weight: bold; font-family: 'Cormorant Garamond', serif; font-size: 2rem;">
+                                    {{ substr($candidate->name, 0, 1) }}
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Data & Text -->
+                        <div style="flex: 1; min-width: 200px;">
+                            <h3 style="margin: 0 0 5px; color: #991b1b; font-size: 1.5rem; font-weight: 400; font-family: 'Cormorant Garamond', serif;">{{ $candidate->name }}</h3>
+                            <p style="color: #991b1b; font-size: 0.9rem; margin: 0 0 15px; opacity: 0.8;">{{ Str::limit($candidate->description, 100) }}</p>
+                            
+                            @if($candidate->rejection_reason)
+                                <div style="background: white; padding: 15px; border-radius: 4px;">
+                                    <div style="font-size: 0.6rem; text-transform: uppercase; color: #991b1b; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 5px;">Raison du refus transmise</div>
+                                    <div style="font-size: 0.85rem; color: #7f1d1d; font-style: italic;">"{{ $candidate->rejection_reason }}"</div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <p style="color: var(--text-dim); font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;">Aucune candidature n'a été rejetée.</p>
+            @endforelse
+        </div>
+    </div>
+    
 </div>
 
 <!-- Archived Candidates -->

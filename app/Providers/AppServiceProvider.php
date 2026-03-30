@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
         \Illuminate\Pagination\Paginator::useBootstrapFour();
         
         // Appliquer les limites PHP depuis le .env

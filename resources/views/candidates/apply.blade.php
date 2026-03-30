@@ -3,6 +3,20 @@
 @section('title', 'Candidature – ' . $campaign->name)
 
 @section('content')
+@if ($errors->any())
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Erreur de saisie',
+                html: '<ul style="text-align:left;">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
+                icon: 'error',
+                confirmButtonColor: '#003229',
+                background: '#fff8e7',
+                color: '#003229'
+            });
+        });
+    </script>
+@endif
 <div style="max-width: 800px; margin: 60px auto; padding: 0 20px;">
     <div class="card" style="border-bottom: 6px solid var(--accent); padding: 80px 60px; box-shadow: var(--shadow-hard);">
         
@@ -16,19 +30,27 @@
                 {{ $campaign->name }}</h1>
         </div>
         
-        <form action="{{ route('candidates.apply', $campaign->slug) }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 40px;">
+        <form action="{{ route('candidates.store-apply', $campaign->slug) }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 40px;">
             @csrf
             
-            <div>
-                <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Nom Complet du Candidat</label>
-                <input type="text" name="name" value="{{ Auth::user()->name }}" required autofocus placeholder="EX: JEAN DUPONT"
-                    style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Nom Complet du Candidat</label>
+                    <input type="text" name="name" value="{{ old('name', Auth::user()->name) }}" required autofocus placeholder="EX: JEAN DUPONT"
+                        style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px; background: #f9f9f9;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Numéro de Téléphone</label>
+                    <input type="text" value="{{ Auth::user()->phone ?? 'Non renseigné' }}" disabled
+                        style="height: 65px; font-size: 1.1rem; border-radius: 4px; border: 1px solid var(--border); width: 100%; padding: 0 25px; background: #eee; color: #666; cursor: not-allowed;">
+                    <div style="font-size: 0.6rem; color: var(--accent); margin-top: 5px; text-transform: uppercase;">Prélevé sur votre profil</div>
+                </div>
             </div>
 
             <div>
                 <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Votre Programme / Vision</label>
                 <textarea name="description" rows="6" placeholder="Décrivez vos motivations et votre projet pour ce scrutin..."
-                    style="width: 100%; border: 1px solid var(--border); padding: 20px 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: vertical; min-height: 180px;"></textarea>
+                    style="width: 100%; border: 1px solid var(--border); padding: 20px 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: vertical; min-height: 180px;">{{ old('description') }}</textarea>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">

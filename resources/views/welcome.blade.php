@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@php $isWelcome = true; @endphp
-
 @section('welcome-hero')
 <!-- Pure Tamarin Hero Slider (Defilement) -->
 <div x-data="{ 
@@ -110,6 +108,41 @@
     </div>
 </div>
 
+<!-- Promotional Section (Model Showcase) -->
+<div id="promo-section" style="background: var(--primary); padding: 150px 0; margin: 0 -60px; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05);">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 10;">
+        <div style="display: flex; gap: 100px; align-items: center; flex-wrap: wrap-reverse;">
+            
+            <!-- Left: Model Image -->
+            <div style="flex: 0.8; min-width: 380px;">
+                <div style="position: relative;">
+                    <img src="https://i.pinimg.com/736x/95/bd/48/95bd48281e3a5a6fba44a27089d2447f.jpg" 
+                         style="width: 100%; height: auto; box-shadow: 0 40px 100px rgba(0,0,0,0.5); filter: contrast(1.1) brightness(0.95);" 
+                         alt="Prestige Model">
+                    <!-- Elegant Frame -->
+                    <div style="position: absolute; bottom: -20px; left: -20px; width: 100%; height: 100%; border: 1px solid var(--accent); opacity: 0.3; z-index: -1;"></div>
+                </div>
+            </div>
+
+            <!-- Right: Inspirational Text -->
+            <div style="flex: 1; min-width: 320px;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; display: block; margin-bottom: 30px;">L'Art du Choix</span>
+                <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); color: white; font-family: 'Cormorant Garamond', serif; font-weight: 300; margin: 0; line-height: 1.1;">Soutenez <br> <span style="font-style: italic;">l'Excellence.</span></h2>
+                <div style="width: 40px; height: 1px; background: var(--accent); margin-top: 35px; margin-bottom: 35px;"></div>
+                <p style="color: rgba(255,255,255,0.8); font-size: 1.4rem; line-height: 1.8; font-family: 'Cormorant Garamond', serif; font-style: italic; max-width: 500px;">
+                    Votez pour votre modèle favori, célébrez la distinction et participez activement à l'élégance de chaque instant capturé. Votre voix est l'ultime hommage au talent.
+                </p>
+                <div style="margin-top: 50px;">
+                    <a href="#campaigns" style="color: white; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.3em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 10px; transition: 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='white'">
+                        Voir les candidats &rarr;
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
 <!-- Participation Privée Section -->
 <div id="join-section" style="background: var(--primary); padding: 150px 0; margin: 0 -60px; position: relative; overflow: hidden;">
     <!-- Background Decor (Superposed images) -->
@@ -137,6 +170,22 @@
                             <label style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.2em; display: block; margin-bottom: 20px;">Code d'accès exclusif</label>
                             <input type="text" name="code" placeholder="EX: LUX-VOTE-2024" required style="width: 100%; padding: 20px; border: 1px solid var(--border); border-radius: 0; font-family: 'Jost', sans-serif; font-size: 1rem; letter-spacing: 0.1em; color: var(--primary); background: #F9F9F9; text-transform: uppercase;">
                         </div>
+                        
+                        @error('code')
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                Swal.fire({
+                                    title: 'Accès Refusé',
+                                    text: "{{ $message }}",
+                                    icon: 'error',
+                                    confirmButtonColor: '#003229',
+                                    background: '#fff8e7',
+                                    color: '#003229'
+                                });
+                            });
+                        </script>
+                        @enderror
+
                         <button type="submit" style="width: 100%; padding: 22px; background: var(--primary); color: white; border: none; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.35em; text-transform: uppercase; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--primary)'">
                             Vérifier l'accès
                         </button>

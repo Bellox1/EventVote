@@ -98,13 +98,15 @@ class CampaignController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:50000',
-            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg,video/ogg,video/webm,video/x-matroska|max:100000'
+            'video' => 'nullable|file|mimes:mp4,webm,mkv,avi,mov,mpeg,ogg|max:100000',
+            'vote_price' => 'required|integer|min:0',
+            'bank_account' => 'nullable|string|max:255'
         ], [
             'name.required' => 'Le nom du scrutin est obligatoire.',
             'image.image' => 'L\'affiche doit être une image valide.',
             'image.max' => 'L\'image ne doit pas dépasser 50 Mo.',
             'video.max' => 'La vidéo ne doit pas dépasser 100 Mo.',
-            'video.mimetypes' => 'Le format de la vidéo n\'est pas supporté (Formats acceptés : MP4, WEBM, MKV, AVI, MPEG).',
+            'video.mimes' => 'Le format de la vidéo n\'est pas supporté (Formats acceptés : MP4, WEBM, MKV, AVI, MOV).',
             'image.uploaded' => 'L\'image est trop volumineuse pour être traitée.',
             'video.uploaded' => 'La vidéo est trop volumineuse pour être traitée.',
         ]);
@@ -134,6 +136,8 @@ class CampaignController extends Controller
             'description' => $request->description,
             'image_path' => $imagePath,
             'video_path' => $videoPath,
+            'vote_price' => $request->vote_price,
+            'bank_account' => $request->bank_account,
             'status' => 'pending' // Admin must validate
         ]);
 
@@ -172,7 +176,7 @@ class CampaignController extends Controller
         $campaign = Campaign::where('code', $code)->first();
 
         if ($campaign) {
-            return redirect()->route('campaigns.show', $campaign->slug);
+            return redirect()->route('candidates.apply', $campaign->slug);
         }
 
         return back()->withErrors(['code' => 'Code de campagne invalide.']);
@@ -192,7 +196,9 @@ class CampaignController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:50000',
-            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg,video/ogg,video/webm,video/x-matroska|max:100000'
+            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg,video/ogg,video/webm,video/x-matroska|max:100000',
+            'vote_price' => 'required|integer|min:0',
+            'bank_account' => 'nullable|string|max:255'
         ]);
 
         if ($request->hasFile('image')) {
@@ -212,6 +218,8 @@ class CampaignController extends Controller
         $campaign->update([
             'name' => $request->name,
             'description' => $request->description,
+            'vote_price' => $request->vote_price,
+            'bank_account' => $request->bank_account,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Scrutin mis à jour avec succès.');

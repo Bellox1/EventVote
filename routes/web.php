@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\ForgotPasswordController;
-
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VoteController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Models\Campaign;
@@ -46,9 +46,18 @@ Route::middleware('auth')->group(function () {
         $myPending = $myCreated->where('status', 'pending');
         $myActive = $myCreated->where('status', '!=', 'pending');
         
-        // 2. Participations (if active ones are empty)
+        // 2. Mes Dossiers (Candidatures envoyées)
+        $myCandidacies = \App\Models\Candidate::where('user_id', $user->id)
+            ->with(['campaign' => function($q) {
+                $q->withCount('votes');
+            }])
+            ->withCount('votes')
+            ->latest()
+            ->get();
+
+        // 3. Participations (en tant qu'électeur)
         $participations = collect();
-        if ($myActive->isEmpty()) {
+        if ($myActive->isEmpty() && $myCandidacies->isEmpty()) {
             $votedCampaignIds = $user->votes()->pluck('campaign_id')->unique();
             $participations = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->where('status', 'active')->latest()->get();
             if ($participations->isNotEmpty()) {
@@ -58,14 +67,27 @@ Route::middleware('auth')->group(function () {
 
         $myVotes = $user->votes()->with(['campaign', 'candidate'])->latest()->get();
         return view('dashboard', [
-            'myActive' => $myActive,
             'myPending' => $myPending,
+            'myActive' => $myActive,
+            'myCandidacies' => $myCandidacies,
             'participations' => $participations,
             'myVotes' => $myVotes,
             'contextLabel' => $contextLabel
         ]);
     })->name('dashboard');
 
+    // Profile Management
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/delete-request', [ProfileController::class, 'deleteRequest'])->name('profile.delete.request');
+    Route::post('/profile/delete-confirm', [ProfileController::class, 'deleteConfirm'])->name('profile.delete.confirm');
+
+    // Candidatures par le candidat lui-même
+    Route::get('/candidacies/{id}/edit', [CandidateController::class, 'editApply'])->name('candidates.edit-apply');
+    Route::post('/candidacies/{id}/update', [CandidateController::class, 'updateApply'])->name('candidates.update-apply');
+    Route::delete('/candidacies/{id}', [CandidateController::class, 'destroyApply'])->name('candidates.destroy-apply');
+    Route::get('/candidacies/{id}/stats', [CandidateController::class, 'stats'])->name('candidates.stats');
 
     Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
@@ -74,21 +96,20 @@ Route::middleware('auth')->group(function () {
     Route::put('/campaigns/{slug}', [CampaignController::class, 'update'])->name('campaigns.update');
     Route::delete('/campaigns/{slug}', [CampaignController::class, 'destroy'])->name('campaigns.destroy');
     Route::put('/campaigns/{slug}/settings', [CampaignController::class, 'updateSettings'])->name('campaigns.settings');
-
     
     // Candidate applications
     Route::get('/campaigns/{slug}/apply', [CandidateController::class, 'apply'])->name('candidates.apply');
-    Route::post('/campaigns/{slug}/apply', [CandidateController::class, 'storeApply']);
+    Route::post('/campaigns/{slug}/apply', [CandidateController::class, 'storeApply'])->name('candidates.store-apply');
     Route::post('/candidate-applications/{id}', [CandidateController::class, 'manageApplication'])->name('candidate-applications.manage');
     Route::delete('/candidates/{id}/archive', [CandidateController::class, 'destroy'])->name('candidates.archive');
     Route::post('/candidates/{id}/restore', [CandidateController::class, 'restore'])->name('candidates.restore');
     Route::delete('/candidates/{id}/force', [CandidateController::class, 'forceDestroy'])->name('candidates.force');
+    Route::post('/campaigns/join', [CampaignController::class, 'join'])->name('campaigns.join');
 });
 
 // Campaign and Vote
 Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
 Route::get('/campaigns/{slug}', [CampaignController::class, 'show'])->name('campaigns.show');
-Route::post('/campaigns/join', [CampaignController::class, 'join'])->name('campaigns.join');
 Route::post('/campaigns/{slug}/vote', [VoteController::class, 'cast'])->name('vote.cast');
 
 Route::get('/campaigns/{slug}/candidates/{id}', [CandidateController::class, 'show'])->name('candidates.show');

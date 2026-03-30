@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Candidate;
 use App\Models\CampaignVisit;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CampaignStatusMail;
 
 class AdminController extends Controller
 {
@@ -26,7 +28,26 @@ class AdminController extends Controller
             }])
             ->latest()
             ->get();
-        $pendingCandidates = Candidate::where('status', 'pending')->with('campaign', 'user')->latest()->get();
+            
+        $rejectedCampaigns = Campaign::where('status', 'rejected')
+            ->with(['creator' => function($query) {
+                $query->withCount([
+                    'campaigns as active_campaigns_count' => function($q) { $q->where('status', 'active'); },
+                    'campaigns as rejected_campaigns_count' => function($q) { $q->where('status', 'rejected'); }
+                ]);
+            }])
+            ->latest()
+            ->get();
+            
+        $acceptedCampaigns = Campaign::whereNotIn('status', ['pending', 'rejected'])
+            ->with(['creator' => function($query) {
+                $query->withCount([
+                    'campaigns as active_campaigns_count' => function($q) { $q->where('status', 'active'); },
+                    'campaigns as rejected_campaigns_count' => function($q) { $q->where('status', 'rejected'); }
+                ]);
+            }])
+            ->latest()
+            ->get();
         
         $users = User::withCount(['campaigns', 'campaigns as active_campaigns_count' => function($query) {
             $query->where('status', 'active');
@@ -56,12 +77,23 @@ class AdminController extends Controller
             ->orderByDesc('unique_views_count')
             ->first();
 
+        $totalDemandes = Campaign::count();
+        $acceptedDemandes = Campaign::whereNotIn('status', ['pending', 'rejected'])->count();
+        $rejectedDemandes = Campaign::where('status', 'rejected')->count();
+        
+        $allCandidates = Candidate::with(['campaign', 'user'])->latest()->get();
+
         return view('admin.dashboard', compact(
             'pendingCampaigns', 
-            'pendingCandidates',
+            'rejectedCampaigns',
+            'acceptedCampaigns',
             'users', 
             'campaignsStats',
-            'mostViewedCampaign'
+            'mostViewedCampaign',
+            'totalDemandes',
+            'acceptedDemandes',
+            'rejectedDemandes',
+            'allCandidates'
         ));
     }
 
@@ -70,10 +102,20 @@ class AdminController extends Controller
         if (!Auth::user()->isAdmin()) abort(403);
         $campaign = Campaign::findOrFail($id);
 
-        $request->validate(['status' => 'required|in:active,rejected']);
-        $campaign->update(['status' => $request->status]);
+        $request->validate([
+            'status' => 'required|in:active,rejected',
+            'rejection_reason' => 'nullable|string'
+        ]);
+        
+        $campaign->update([
+            'status' => $request->status,
+            'rejection_reason' => $request->status === 'rejected' ? $request->rejection_reason : null
+        ]);
 
-        return back()->with('success', 'Campaign updated.');
+        // Envoyer l'email au créateur
+        Mail::to($campaign->creator->email)->send(new CampaignStatusMail($campaign, $request->status));
+
+        return back()->with('success', 'La campagne a été mise à jour et le créateur a été notifié.');
     }
 
     public function banUser($userId)
