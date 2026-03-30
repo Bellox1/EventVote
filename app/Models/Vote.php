@@ -11,7 +11,8 @@ class Vote extends Model
 
     protected $fillable = [
         'campaign_id', 'candidate_id', 'user_id', 
-        'session_id', 'ip_address', 'user_agent'
+        'session_id', 'ip_address', 'user_agent',
+        'amount', 'votes_count', 'payment_id', 'status'
     ];
 
     public function campaign()

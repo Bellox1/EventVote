@@ -175,7 +175,7 @@
                                 {{ $index + 1 }}
                             </div>
                             
-                            <div class="candidate-card" style="position: relative; aspect-ratio: 4/5; overflow: hidden; border-radius: 4px; margin-bottom: 24px; box-shadow: var(--shadow-soft); background: var(--primary); cursor: pointer;">
+                            <div class="candidate-card" style="position: relative; aspect-ratio: 1/1; overflow: hidden; border-radius: 4px; margin: 0 auto 24px; box-shadow: var(--shadow-soft); background: var(--primary); cursor: pointer; max-width: 400px;">
                                 <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; height: 100%;">
                                      @if($candidate->image_path)
                                         <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" 
@@ -191,11 +191,10 @@
                                  <div class="voting-overlay">
                                     @if ($campaign->isActive())
                                         <div style="display: flex; gap: 10px; width: 100%;">
-                                            <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0; flex: 1;">
-                                                @csrf
-                                                <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
-                                                <button type="submit" class="btn-vote" style="flex: 1;">VOTER</button>
-                                            </form>
+                                            <button type="button" class="btn-vote" style="flex: 1;" 
+                                                onclick="buyVotes({{ $candidate->id }}, '{{ addslashes($candidate->name) }}', {{ $campaign->vote_price }})">
+                                                VOTER
+                                            </button>
                                             <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" class="btn-view" style="flex: 1;">VOIR LE PROFIL</a>
                                         </div>
                                     @endif
@@ -255,11 +254,10 @@
                         <div class="voting-overlay">
                             @if ($campaign->isActive())
                                 <div style="display: flex; gap: 10px; width: 100%;">
-                                    <form action="{{ route('vote.cast', $campaign->slug) }}" method="POST" style="margin: 0; flex: 1;">
-                                        @csrf
-                                        <input type="hidden" name="candidate_id" value="{{ $candidate->id }}">
-                                        <button type="submit" class="btn-vote" style="flex: 1;">VOTER</button>
-                                    </form>
+                                    <button type="button" class="btn-vote" style="flex: 1;"
+                                        onclick="buyVotes({{ $candidate->id }}, '{{ addslashes($candidate->name) }}', {{ $campaign->vote_price }})">
+                                        VOTER
+                                    </button>
                                     <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" class="btn-view" style="flex: 1;">VOIR ({{ $totalVotes > 0 ? round(($candidate->votes_count / $totalVotes) * 100, 1) : 0 }}%)</a>
                                 </div>
                             @endif
@@ -285,4 +283,57 @@
             @endforelse
         </div>
     </div>
+
+    <!-- Payment Initiation Form (Hidden) -->
+    <form id="payment-form" action="{{ route('payment.initiate') }}" method="POST" style="display: none;">
+        @csrf
+        <input type="hidden" name="candidate_id" id="payment-candidate-id">
+        <input type="hidden" name="campaign_id" value="{{ $campaign->id }}">
+        <input type="hidden" name="votes_count" id="payment-votes-count">
+    </form>
+
+    <script>
+        function buyVotes(candidateId, candidateName, unitPrice) {
+            Swal.fire({
+                title: 'Soutenir ' + candidateName,
+                html: `
+                    <div style="padding: 20px 0;">
+                        <p style="color: var(--text-dim); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.1rem; margin-bottom: 25px;">
+                            Saisissez le nombre de voix que vous souhaitez attribuer (Max 100).
+                        </p>
+                        <div style="margin-bottom: 20px;">
+                            <input type="number" id="votes-input" value="1" min="1" max="100" 
+                                style="width: 100px; padding: 15px; text-align: center; font-size: 1.5rem; border: 1px solid var(--border); background: #F9F9F9; font-weight: 700; outline: none; color: var(--primary);"
+                                oninput="document.getElementById('total-price').innerText = (this.value * ${unitPrice}).toLocaleString()">
+                        </div>
+                        <div style="background: var(--primary); color: white; padding: 15px; border-radius: 4px;">
+                            <span style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.7rem; opacity: 0.7;">Montant Total:</span><br>
+                            <span style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif;"><span id="total-price">${unitPrice.toLocaleString()}</span> FCFA</span>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Procéder au paiement',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#003229',
+                cancelButtonColor: '#ef4444',
+                background: '#fff8e7',
+                color: '#003229',
+                preConfirm: () => {
+                    const count = document.getElementById('votes-input').value;
+                    if (count < 1 || count > 100) {
+                        Swal.showValidationMessage('Veuillez choisir entre 1 et 100 votes.');
+                        return false;
+                    }
+                    return count;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('payment-candidate-id').value = candidateId;
+                    document.getElementById('payment-votes-count').value = result.value;
+                    document.getElementById('payment-form').submit();
+                }
+            });
+        }
+    </script>
 @endsection

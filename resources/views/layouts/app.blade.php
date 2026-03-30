@@ -662,6 +662,21 @@
                 </script>
             @endif
 
+            @if (session('error'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            title: 'Attention',
+                            text: "{{ session('error') }}",
+                            icon: 'error',
+                            confirmButtonColor: '#ff6b6b',
+                            background: '#fff8e7',
+                            color: '#003229'
+                        });
+                    });
+                </script>
+            @endif
+
 
             @yield('content')
         </div>
