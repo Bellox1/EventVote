@@ -608,7 +608,7 @@
                 <a href="/" style="text-decoration: none;">
                     <div class="logo-text"
                         :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }">
-                        VOTE <span style="font-weight: 300; color: var(--accent);">ÉVÉNEMENTIELLE</span>
+                        {{ strtoupper(substr(config('app.name'), 0, 5)) }} <span style="font-weight: 300; color: var(--accent);">{{ substr(config('app.name'), 5) }}</span>
                     </div>
                 </a>
 
@@ -669,12 +669,12 @@
 
     <footer>
         <div class="container" style="display: flex; flex-direction: column; align-items: center;">
-            <div class="footer-logo">VOTE <span style="font-weight: 300; color: var(--accent);">ÉVÉNEMENTIELLE</span>
+            <div class="footer-logo">{{ strtoupper(substr(config('app.name'), 0, 5)) }} <span style="font-weight: 300; color: var(--accent);">{{ substr(config('app.name'), 5) }}</span>
             </div>
             <div style="width: 40px; height: 1px; background: rgba(255,255,255,0.1); margin: 30px 0;"></div>
             <div
                 style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.5; text-align: center;">
-                © 2026 VOTE ÉVÉNEMENTIELLE • TOUS DROITS RÉSERVÉS.
+                © 2026 {{ config('app.name') }} • TOUS DROITS RÉSERVÉS.
             </div>
         </div>
     </footer>

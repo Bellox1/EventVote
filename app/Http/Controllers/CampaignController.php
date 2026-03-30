@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\CampaignVisit;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewCampaignMail;
 
 class CampaignController extends Controller
 {
@@ -137,6 +139,15 @@ class CampaignController extends Controller
 
         \Illuminate\Support\Facades\Log::info('Campagne créée avec succès.', ['id' => $campaign->id]);
 
+        // Notify Super Admin
+        $superAdminEmail = env('SUPER_ADMIN_EMAIL', 'mantinoubello123@gmail.com');
+        try {
+            Mail::to($superAdminEmail)->send(new NewCampaignMail($campaign));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erreur lors de l\'envoi du mail super admin.', [
+                'error' => $e->getMessage()
+            ]);
+        }
 
         return redirect('/dashboard')->with('success', 'Le scrutin a été soumis avec succès et est en attente de validation par l\'administration.');
 

@@ -17,7 +17,15 @@ class AdminController extends Controller
     {
         if (!Auth::user()->isAdmin()) abort(403);
         
-        $pendingCampaigns = Campaign::where('status', 'pending')->with('creator')->latest()->get();
+        $pendingCampaigns = Campaign::where('status', 'pending')
+            ->with(['creator' => function($query) {
+                $query->withCount([
+                    'campaigns as active_campaigns_count' => function($q) { $q->where('status', 'active'); },
+                    'campaigns as rejected_campaigns_count' => function($q) { $q->where('status', 'rejected'); }
+                ]);
+            }])
+            ->latest()
+            ->get();
         $pendingCandidates = Candidate::where('status', 'pending')->with('campaign', 'user')->latest()->get();
         
         $users = User::withCount(['campaigns', 'campaigns as active_campaigns_count' => function($query) {

@@ -39,6 +39,15 @@
                         onblur="this.style.borderBottomColor='var(--border)'; this.style.paddingLeft='0';">
                 </div>
 
+                <div>
+                    <label
+                        style="display: block; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.25em; opacity: 0.8;">Téléphone</label>
+                    <input type="tel" name="phone" required placeholder="VOTRE NUMÉRO DE TÉLÉPHONE"
+                        style="width: 100%; height: 60px; padding: 0 0; background: transparent; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 1.1rem; color: var(--primary); letter-spacing: 0.05em; transition: all 0.4s; outline: none;"
+                        onfocus="this.style.borderBottomColor='var(--primary)'; this.style.paddingLeft='10px';"
+                        onblur="this.style.borderBottomColor='var(--border)'; this.style.paddingLeft='0';">
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                     <div x-data="{ show: false }">
                         <label
