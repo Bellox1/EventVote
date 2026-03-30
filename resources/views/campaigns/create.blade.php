@@ -19,6 +19,17 @@
         <form action="{{ route('campaigns.store') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 50px;">
             @csrf
             
+            @if ($errors->any())
+                <div style="padding: 24px; background: rgba(220, 38, 38, 0.05); border-left: 4px solid #dc2626; margin-bottom: 20px;">
+                    <ul style="margin: 0; padding-left: 20px; color: #dc2626; font-size: 0.9rem;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            
             <!-- Section 1: Informations Générales -->
             <div style="display: flex; flex-direction: column; gap: 35px;">
                 <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Détails de la Session</div>

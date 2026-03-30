@@ -4,6 +4,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CandidateController;
+use App\Http\Controllers\ForgotPasswordController;
+
 use App\Http\Controllers\VoteController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Models\Campaign;
@@ -24,40 +26,55 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Password Reset Routes
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendOtp'])->name('password.email');
+Route::get('/verify-otp', [ForgotPasswordController::class, 'showVerifyOtp'])->name('password.verify-otp');
+Route::post('/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('password.verify-otp-post');
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset-form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
 // User restricted
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = Auth::user();
         $contextLabel = 'Mes Sessions';
         
-        // 1. Created campaigns
-        $displayCampaigns = $user->campaigns()->latest()->get();
+        // 1. My created campaigns
+        $myCreated = $user->campaigns()->latest()->get();
+        $myPending = $myCreated->where('status', 'pending');
+        $myActive = $myCreated->where('status', '!=', 'pending');
         
-        // 2. If none created, check participation
-        if ($displayCampaigns->isEmpty()) {
+        // 2. Participations (if active ones are empty)
+        $participations = collect();
+        if ($myActive->isEmpty()) {
             $votedCampaignIds = $user->votes()->pluck('campaign_id')->unique();
-            $displayCampaigns = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->latest()->get();
-            $contextLabel = 'Participations';
-        }
-        
-        // 3. If no participation, show all active
-        if ($displayCampaigns->isEmpty()) {
-            $displayCampaigns = \App\Models\Campaign::where('status', 'active')->latest()->get();
-            $contextLabel = 'Toutes les Sessions';
+            $participations = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->where('status', 'active')->latest()->get();
+            if ($participations->isNotEmpty()) {
+                $contextLabel = 'Participations';
+            }
         }
 
         $myVotes = $user->votes()->with(['campaign', 'candidate'])->latest()->get();
         return view('dashboard', [
-            'myCampaigns' => $displayCampaigns,
+            'myActive' => $myActive,
+            'myPending' => $myPending,
+            'participations' => $participations,
             'myVotes' => $myVotes,
             'contextLabel' => $contextLabel
         ]);
     })->name('dashboard');
 
+
     Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
     Route::get('/campaigns/{slug}/manage', [CampaignController::class, 'manage'])->name('campaigns.manage');
+    Route::get('/campaigns/{slug}/edit', [CampaignController::class, 'edit'])->name('campaigns.edit');
+    Route::put('/campaigns/{slug}', [CampaignController::class, 'update'])->name('campaigns.update');
+    Route::delete('/campaigns/{slug}', [CampaignController::class, 'destroy'])->name('campaigns.destroy');
     Route::put('/campaigns/{slug}/settings', [CampaignController::class, 'updateSettings'])->name('campaigns.settings');
+
     
     // Candidate applications
     Route::get('/campaigns/{slug}/apply', [CandidateController::class, 'apply'])->name('candidates.apply');

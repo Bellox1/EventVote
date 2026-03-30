@@ -640,11 +640,20 @@
 
         <div class="container" style="min-height: 50vh; padding-bottom: 100px; padding-top: 120px;">
             @if (session('success'))
-                <div
-                    style="padding: 20px; background: white; border-top: 2px solid var(--accent); box-shadow: var(--shadow-soft); color: var(--primary); margin-bottom: 40px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem;">
-                    {{ session('success') }}
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            title: 'Succès',
+                            text: "{{ session('success') }}",
+                            icon: 'success',
+                            confirmButtonColor: '#003229',
+                            background: '#fff8e7',
+                            color: '#003229'
+                        });
+                    });
+                </script>
             @endif
+
 
             @yield('content')
         </div>

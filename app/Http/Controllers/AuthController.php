@@ -20,19 +20,26 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+        ], [
+            'email.required' => 'L\'identifiant email est obligatoire.',
+            'email.email' => 'L\'adresse email n\'est pas valide.',
+            'password.required' => 'Le mot de passe est obligatoire.',
         ]);
+
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             if ($user->is_banned) {
                 Auth::logout();
-                return back()->withErrors(['email' => 'Your account has been banned.']);
+                return back()->withErrors(['email' => 'Votre compte a été banni.']);
+
             }
             $request->session()->regenerate();
             return redirect()->intended('/dashboard');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
+        return back()->withErrors(['email' => 'Identifiants invalides.'])->onlyInput('email');
+
     }
 
     public function showRegister()
@@ -46,7 +53,16 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'name.required' => 'Le nom est obligatoire.',
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.email' => 'L\'adresse email n\'est pas valide.',
+            'email.unique' => 'Cette adresse email est déjà utilisée.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
         ]);
+
 
         $user = User::create([
             'name' => $request->name,

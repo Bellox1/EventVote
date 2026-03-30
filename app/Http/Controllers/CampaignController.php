@@ -8,12 +8,17 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CampaignVisit;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Session;
 
 class CampaignController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if (!$request->has('search')) {
+            session(['last_campaigns_index' => $request->fullUrl()]);
+        }
         $query = Campaign::where('status', 'active');
         $total = $query->count();
         
@@ -26,11 +31,20 @@ class CampaignController extends Controller
             $perPage = 9; // Grid-friendly layout for large counts
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
         $campaigns = $query->latest()->paginate($perPage);
         return view('campaigns.index', compact('campaigns'));
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
         $campaign = Campaign::where('slug', $slug)
             ->orWhere('code', strtoupper($slug))
@@ -40,13 +54,33 @@ class CampaignController extends Controller
             abort(403, 'Campagne indisponible.');
         }
 
-        $candidates = $campaign->candidates()
-            ->where('status', 'accepted')
+        $candidateQuery = $campaign->candidates()
+            ->where('status', 'accepted');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $candidateQuery->where('name', 'like', "%{$search}%");
+        }
+
+        $candidates = $candidateQuery
             ->orderByRaw('sort_order = 0')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
         $topCandidates = $campaign->candidates()->where('status', 'accepted')->orderByDesc('votes_count')->limit(3)->get();
+
+        // Track Visit & View
+        $visit = CampaignVisit::firstOrCreate([
+            'campaign_id' => $campaign->id,
+            'ip_address' => request()->ip(),
+            'session_id' => Session::getId(),
+        ]);
+
+        if (!$visit->wasRecentlyCreated) {
+            $visit->increment('hits');
+        } else if (Auth::check()) {
+            $visit->update(['user_id' => Auth::id()]);
+        }
 
         return view('campaigns.show', compact('campaign', 'candidates', 'topCandidates'));
     }
@@ -61,9 +95,21 @@ class CampaignController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:5000',
-            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo|max:20000'
+            'image' => 'nullable|image|max:50000',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg,video/ogg,video/webm,video/x-matroska|max:100000'
+        ], [
+            'name.required' => 'Le nom du scrutin est obligatoire.',
+            'image.image' => 'L\'affiche doit être une image valide.',
+            'image.max' => 'L\'image ne doit pas dépasser 50 Mo.',
+            'video.max' => 'La vidéo ne doit pas dépasser 100 Mo.',
+            'video.mimetypes' => 'Le format de la vidéo n\'est pas supporté (Formats acceptés : MP4, WEBM, MKV, AVI, MPEG).',
+            'image.uploaded' => 'L\'image est trop volumineuse pour être traitée.',
+            'video.uploaded' => 'La vidéo est trop volumineuse pour être traitée.',
         ]);
+
+
+
+
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -75,7 +121,12 @@ class CampaignController extends Controller
             $videoPath = $request->file('video')->store('campaigns_videos', 'public');
         }
 
-        Campaign::create([
+        \Illuminate\Support\Facades\Log::info('Création de campagne initiée.', [
+            'name' => $request->name,
+            'user_id' => Auth::id()
+        ]);
+
+        $campaign = Campaign::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
             'description' => $request->description,
@@ -84,7 +135,11 @@ class CampaignController extends Controller
             'status' => 'pending' // Admin must validate
         ]);
 
-        return redirect('/dashboard')->with('success', 'Campaign submitted for validation.');
+        \Illuminate\Support\Facades\Log::info('Campagne créée avec succès.', ['id' => $campaign->id]);
+
+
+        return redirect('/dashboard')->with('success', 'Le scrutin a été soumis avec succès et est en attente de validation par l\'administration.');
+
     }
 
     public function manage($slug)
@@ -112,7 +167,63 @@ class CampaignController extends Controller
         return back()->withErrors(['code' => 'Code de campagne invalide.']);
     }
 
+    public function edit($slug)
+    {
+        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        return view('campaigns.edit', compact('campaign'));
+    }
+
+    public function update(Request $request, $slug)
+    {
+        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|max:50000',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg,video/ogg,video/webm,video/x-matroska|max:100000'
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($campaign->image_path) {
+                Storage::disk('public')->delete($campaign->image_path);
+            }
+            $campaign->image_path = $request->file('image')->store('campaigns', 'public');
+        }
+
+        if ($request->hasFile('video')) {
+            if ($campaign->video_path) {
+                Storage::disk('public')->delete($campaign->video_path);
+            }
+            $campaign->video_path = $request->file('video')->store('campaigns_videos', 'public');
+        }
+
+        $campaign->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Scrutin mis à jour avec succès.');
+    }
+
+    public function destroy($slug)
+    {
+        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+
+        if ($campaign->image_path) {
+            Storage::disk('public')->delete($campaign->image_path);
+        }
+        if ($campaign->video_path) {
+            Storage::disk('public')->delete($campaign->video_path);
+        }
+
+        $campaign->delete();
+
+        return redirect()->route('dashboard')->with('success', 'Le scrutin a été définitivement annulé.');
+    }
+
     public function updateSettings(Request $request, $slug)
+
     {
         $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
         
