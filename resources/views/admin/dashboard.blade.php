@@ -66,6 +66,7 @@
             <button @click="tab = 'accepted'" :class="{ 'active-tab': tab === 'accepted' }" class="tab-btn">Acceptées</button>
             <button @click="tab = 'rejected'" :class="{ 'active-tab': tab === 'rejected' }" class="tab-btn">Rejetées</button>
             <button @click="tab = 'users'" :class="{ 'active-tab': tab === 'users' }" class="tab-btn">Utilisateurs</button>
+            <button @click="tab = 'banned'" :class="{ 'active-tab': tab === 'banned' }" class="tab-btn">Bannis</button>
             <button @click="tab = 'candidates'" :class="{ 'active-tab': tab === 'candidates' }" class="tab-btn">Candidats</button>
             <button @click="tab = 'sessions'" :class="{ 'active-tab': tab === 'sessions' }" class="tab-btn">Analyses</button>
         </div>
@@ -200,6 +201,59 @@
                                 </td>
                             </tr>
                         @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ONGLET BANNIS -->
+        <div x-show="tab === 'banned'" x-transition x-cloak>
+            <div class="card" style="padding: 0; overflow-x: auto; background: white;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 700px;">
+                    <thead style="background: #ef4444; color: white; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.1em;">
+                        <tr>
+                            <th style="padding: 15px 25px;">Utilisateur</th>
+                            <th style="padding: 15px 25px;">Email & Contact</th>
+                            <th style="padding: 15px 25px; text-align: center;">Actifs</th>
+                            <th style="padding: 15px 25px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($bannedUsers as $u)
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 20px 25px;">
+                                    <div style="font-weight: 700; color: #ef4444; font-size: 0.9rem;">{{ $u->name }}</div>
+                                    <div style="font-size: 0.65rem; color: var(--accent);">{{ $u->isAdmin() ? 'Super Admin' : 'Hôte' }}</div>
+                                </td>
+                                <td style="padding: 20px 25px;">
+                                    <div style="font-size: 0.85rem;">{{ $u->email }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-dim);">{{ $u->phone ?? '---' }}</div>
+                                </td>
+                                <td style="padding: 20px 25px; text-align: center; font-weight: 700; color: #ef4444;">{{ $u->active_campaigns_count }}</td>
+                                <td style="padding: 20px 25px; text-align: right;">
+                                    <form action="{{ route('admin.users.unban', $u->id) }}" method="POST" 
+                                          onsubmit="event.preventDefault(); Swal.fire({
+                                              title: 'Restaurer {{ $u->name }} ?',
+                                              text: 'L\'utilisateur pourra de nouveau accéder à son compte.',
+                                              icon: 'question',
+                                              showCancelButton: true,
+                                              confirmButtonColor: '#10b981',
+                                              cancelButtonColor: 'var(--text-dim)',
+                                              confirmButtonText: 'OUI, RESTAURER',
+                                              cancelButtonText: 'ANNULER'
+                                          }).then((result) => { if (result.isConfirmed) { this.submit(); } });">
+                                        @csrf
+                                        <button type="submit" style="background: none; border: none; color: #10b981; font-size: 0.65rem; font-weight: 700; cursor: pointer;">RESTAURER</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 60px 20px; color: var(--text-dim);">
+                                    Aucun compte banni pour le moment.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

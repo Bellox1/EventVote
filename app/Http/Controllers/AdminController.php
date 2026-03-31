@@ -50,9 +50,16 @@ class AdminController extends Controller
             ->latest()
             ->get();
         
-        $users = User::withCount(['campaigns', 'campaigns as active_campaigns_count' => function($query) {
+        $users = User::where(function($query) {
+            $query->where('is_banned', false)->orWhereNull('is_banned');
+        })->withCount(['campaigns', 'campaigns as active_campaigns_count' => function($query) {
             $query->where('status', '=', 'active');
         }])->latest()->get();
+
+        $bannedUsers = User::where('is_banned', true)
+            ->withCount(['campaigns', 'campaigns as active_campaigns_count' => function($query) {
+                $query->where('status', '=', 'active');
+            }])->latest()->get();
 
         $campaigns = Campaign::with('creator')
             ->withCount('allCandidates')
@@ -97,7 +104,8 @@ class AdminController extends Controller
             'totalDemandes',
             'acceptedDemandes',
             'rejectedDemandes',
-            'allCandidates'
+            'allCandidates',
+            'bannedUsers'
         ));
     }
 
@@ -130,5 +138,14 @@ class AdminController extends Controller
 
         $user->update(['is_banned' => true]);
         return back()->with('success', 'User banned.');
+    }
+
+    public function unbanUser($userId)
+    {
+        if (!Auth::user()->isAdmin()) abort(403);
+        $user = User::findOrFail($userId);
+
+        $user->update(['is_banned' => false]);
+        return back()->with('success', 'User restored.');
     }
 }

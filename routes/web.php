@@ -126,6 +126,7 @@ Route::middleware(['auth', 'admin'])->group(function() {
     Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/admin/campaigns/{id}', [AdminController::class, 'manageCampaign'])->name('admin.campaigns.manage');
     Route::post('/admin/users/{id}/ban', [AdminController::class, 'banUser'])->name('admin.users.ban');
+    Route::post('/admin/users/{id}/unban', [AdminController::class, 'unbanUser'])->name('admin.users.unban');
 });
 
 // FedaPay Routes
