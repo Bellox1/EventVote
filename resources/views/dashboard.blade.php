@@ -483,7 +483,7 @@
                         <!-- Zone Image -->
                         <div style="background: #051a16; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; border-right: 1px solid var(--border);">
                             @if($candidacy->image_path)
-                                <img src="{{ asset('storage/' . $candidacy->image_path) }}" style="width: 100%; height: 100%; object-fit: cover; min-height: 400px;">
+                                <img src="{{ \Illuminate\Support\Str::startsWith($candidacy->image_path, 'http') ? $candidacy->image_path : asset('storage/' . $candidacy->image_path) }}" style="width: 100%; height: 100%; object-fit: cover; min-height: 400px;">
                             @else
                                 <div style="height: 400px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.1); font-family: 'Cormorant Garamond', serif; font-size: 5rem;">{{ substr($candidacy->name, 0, 1) }}</div>
                             @endif

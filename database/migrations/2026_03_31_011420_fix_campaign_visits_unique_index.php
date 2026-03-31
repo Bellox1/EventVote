@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('campaign_visits', function (Blueprint $table) {
-            // Add candidate_id column
-            $table->foreignId('candidate_id')->nullable()->constrained()->onDelete('cascade');
+            // Add candidate_id column if not exists (to be safe if rerunning)
+            if (!Schema::hasColumn('campaign_visits', 'candidate_id')) {
+                $table->foreignId('candidate_id')->nullable()->constrained()->onDelete('cascade');
+            }
             
             // Drop old unique index
             $table->dropUnique(['campaign_id', 'ip_address', 'session_id']);
@@ -21,6 +25,8 @@ return new class extends Migration
             // Create new unique index including candidate_id
             $table->unique(['campaign_id', 'candidate_id', 'ip_address', 'session_id'], 'campaign_visits_full_unique');
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -28,9 +34,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('campaign_visits', function (Blueprint $table) {
             $table->dropUnique('campaign_visits_full_unique');
             $table->unique(['campaign_id', 'ip_address', 'session_id']);
+            
+            if (Schema::hasColumn('campaign_visits', 'candidate_id')) {
+                $table->dropForeign(['candidate_id']);
+                $table->dropColumn('candidate_id');
+            }
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 };

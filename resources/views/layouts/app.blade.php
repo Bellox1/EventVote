@@ -359,8 +359,19 @@
         }
 
         /* Subtle Custom Scrollbar for Drawer Navigation */
+        nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        nav::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05); 
+            border-radius: 4px;
+        }
+        nav::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
         nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(212, 174, 109, 0.6); /* Slightly more visible on hover */
+            background: var(--accent-hover);
         }
 
         /* Responsive Utilities */
@@ -544,34 +555,36 @@
                             <a href="{{ route('admin.dashboard') }}" class="drawer-sub-link" style="font-size: 1.1rem; color: var(--accent);">Administration</a>
                         @endif
                         
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                            @csrf
-                        </form>
-
-                        <button type="button"
-                            @click="mobileMenu = false; Swal.fire({
-                                title: 'Déconnexion',
-                                text: 'Voulez-vous vraiment clore cette session d\'exception ?',
-                                icon: 'question',
-                                showCancelButton: true,
-                                confirmButtonColor: '#003229',
-                                cancelButtonColor: '#d4ae6d',
-                                confirmButtonText: 'Oui, me déconnecter',
-                                cancelButtonText: 'Rester connecté',
-                                background: '#fff8e7',
-                                color: '#003229'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    document.getElementById('logout-form').submit();
-                                }
-                            })"
-                            class="drawer-sub-link"
-                            style="background: none; border: none; padding: 0; cursor: pointer; text-align: left; font-size: 1.1rem; color: #ff6b6b; opacity: 0.8; margin-top: 10px;"
-                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
-                            Déconnexion
-                        </button>
                     </div>
                 </div>
+
+                <!-- Déconnexion séparée -->
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+
+                <button type="button"
+                    @click="mobileMenu = false; Swal.fire({
+                        title: 'Déconnexion',
+                        text: 'Voulez-vous vraiment clore cette session d\'exception ?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#003229',
+                        cancelButtonColor: '#d4ae6d',
+                        confirmButtonText: 'Oui, me déconnecter',
+                        cancelButtonText: 'Rester connecté',
+                        background: '#fff8e7',
+                        color: '#003229'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('logout-form').submit();
+                        }
+                    })"
+                    class="drawer-link"
+                    style="background: none; border: none; padding: 0; cursor: pointer; text-align: left; font-size: 1.8rem; color: #ff6b6b; opacity: 0.8; margin-top: 15px;"
+                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                    Déconnexion
+                </button>
             @endguest
         </nav>
 

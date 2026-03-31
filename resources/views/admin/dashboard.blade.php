@@ -278,7 +278,7 @@
                                     <div style="display: flex; align-items: center; gap: 12px;">
                                         <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #f0f0f0;">
                                             @if($candidate->image_path)
-                                                <img src="{{ asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <img src="{{ \Illuminate\Support\Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
                                             @else
                                                 <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:var(--primary);">{{ substr($candidate->name, 0, 1) }}</div>
                                             @endif

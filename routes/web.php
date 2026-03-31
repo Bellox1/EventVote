@@ -101,7 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/candidacies/{id}/edit', [CandidateController::class, 'editApply'])->name('candidates.edit-apply');
     Route::post('/candidacies/{id}/update', [CandidateController::class, 'updateApply'])->name('candidates.update-apply');
     Route::delete('/candidacies/{id}', [CandidateController::class, 'destroyApply'])->name('candidates.destroy-apply');
-    Route::get('/candidacies/{id}/stats', [CandidateController::class, 'stats'])->name('candidates.stats');
+    Route::get('/candidacies/{id}/stats', [CandidateController::class, 'stats'])->name('candidacies.stats');
 
     Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
