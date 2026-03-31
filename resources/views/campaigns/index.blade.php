@@ -37,7 +37,7 @@
     </div>
 
     <div class="grid"
-        style="margin-bottom: 120px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
+        style="margin-bottom: 120px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); gap: 40px;">
         @forelse($campaigns as $campaign)
             <div class="card"
                 style="text-decoration: none; display: flex; flex-direction: column; border: none; background: white; padding: 0; overflow: hidden; transition: all 0.5s;">

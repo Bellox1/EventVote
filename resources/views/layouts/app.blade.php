@@ -513,6 +513,8 @@
                 </div>
             @endif
 
+            <a href="{{ route('help') }}" class="drawer-link {{ request()->routeIs('help') ? 'active' : '' }}" style="font-size: 1.8rem;">Aide & Infos</a>
+
             <div style="width: 30px; height: 1px; background: rgba(212, 174, 109, 0.3); margin: 15px 0 30px;"></div>
 
             <!-- SECTION ESPACE MEMBRE -->
@@ -703,6 +705,13 @@
         <div class="container" style="display: flex; flex-direction: column; align-items: center;">
             <div class="footer-logo">{{ strtoupper(substr(config('app.name'), 0, 5)) }} <span style="font-weight: 300; color: var(--accent);">{{ substr(config('app.name'), 5) }}</span>
             </div>
+            
+            <div style="display: flex; gap: 20px; margin-top: 25px;">
+                <a href="{{ route('help') }}" style="font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); text-transform: uppercase; transition: color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Aide</a>
+                <span style="color: rgba(255,255,255,0.3);">|</span>
+                <a href="{{ route('privacy') }}" style="font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); text-transform: uppercase; transition: color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Confidentialité</a>
+            </div>
+
             <div style="width: 40px; height: 1px; background: rgba(255,255,255,0.1); margin: 30px 0;"></div>
             <div
                 style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.5; text-align: center;">
@@ -712,6 +721,105 @@
     </footer>
 
     @yield('scripts')
+
+    <!-- Cookie Consent Overlay -->
+    <div x-data="cookieConsent()" x-show="showConsent" x-init="init()" x-cloak
+         style="position: fixed; inset: 0; z-index: 9999;">
+         
+         <!-- Blurred backdrop blocking interaction -->
+         <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);"></div>
+
+         <!-- Cookie Box -->
+         <div class="cookie-box" style="position: absolute; background: white; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); z-index: 10000; box-sizing: border-box;">
+             <h3 class="cookie-title" style="font-family: 'Cormorant Garamond', serif; color: var(--primary); font-weight: 600; margin: 0 0 15px 0;">🍪 Vos Cookies, Votre Choix</h3>
+             <p style="font-family: 'Jost', sans-serif; font-size: 1.05rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 30px;">
+                 Ce site utilise des cookies essentiels pour garantir l'intégrité de nos scrutins et sécuriser vos choix. Acceptez-vous de poursuivre l'expérience ?
+             </p>
+             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                 <button @click="accept()" style="flex: 1; min-width: 120px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 6px; font-family: 'Jost', sans-serif; font-weight: 600; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; transition: background 0.3s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--primary)'">Accepter</button>
+                 <button @click="reject()" style="flex: 1; min-width: 120px; padding: 15px; background: transparent; color: var(--primary); border: 2px solid var(--border); border-radius: 6px; font-family: 'Jost', sans-serif; font-weight: 600; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; transition: all 0.3s;" onmouseover="this.style.background='#f9f9f9'; this.style.borderColor='var(--text-main)'" onmouseout="this.style.background='transparent'; this.style.borderColor='var(--border)'">Rejeter</button>
+             </div>
+         </div>
+    </div>
+
+    <style>
+        .swal2-cookie-override {
+            z-index: 100000 !important;
+        }
+        .cookie-box {
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 25px;
+            width: auto;
+        }
+        .cookie-title {
+            font-size: 1.4rem;
+        }
+        @media (min-width: 769px) {
+            .cookie-box {
+                bottom: 40px;
+                left: 40px;
+                right: auto;
+                width: 450px;
+                min-height: 330px;
+                padding: 50px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .cookie-box > p {
+                flex-grow: 1;
+            }
+            .cookie-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('cookieConsent', () => ({
+                showConsent: false,
+                init() {
+                    if (localStorage.getItem('cookies_accepted') !== 'true') {
+                        this.showConsent = true;
+                        document.body.style.overflow = 'hidden'; // Block scroll underneath
+                    }
+                },
+                accept() {
+                    localStorage.setItem('cookies_accepted', 'true');
+                    this.showConsent = false;
+                    document.body.style.overflow = '';
+                    
+                    Swal.fire({
+                        title: 'Bienvenue sur',
+                        html: `<div style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; letter-spacing: 0.15em; margin-top: 10px; text-transform: uppercase;">{{ strtoupper(substr(config('app.name'), 0, 5)) }} <span style="font-weight: 300; color: var(--accent);">{{ substr(config('app.name'), 5) }}</span></div>`,
+                        icon: 'success',
+                        confirmButtonColor: '#003229',
+                        confirmButtonText: 'Commencer',
+                        background: '#fff8e7',
+                        color: '#003229',
+                        timer: 4000,
+                        timerProgressBar: true
+                    });
+                },
+                reject() {
+                    Swal.fire({
+                        title: 'Refus Bloquant',
+                        text: 'L\'utilisation de requêtes sécurisées et le traitement de vos choix nécessitent l\'acceptation de notre politique. Vous ne pouvez pas parcourir ni utiliser le site sans accepter.',
+                        icon: 'warning',
+                        confirmButtonColor: '#003229',
+                        confirmButtonText: 'Compris',
+                        background: '#fff8e7',
+                        color: '#003229',
+                        customClass: {
+                            container: 'swal2-cookie-override'
+                        }
+                    });
+                }
+            }))
+        })
+    </script>
 </body>
 
 </html>

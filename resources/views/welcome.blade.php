@@ -132,7 +132,7 @@
 
         <!-- 3-Column Grid for Campaigns -->
         <div style="max-width: 1400px; margin: 0 auto 150px; padding: 0 20px;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 40px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); gap: 40px;">
                 @forelse($activeCampaigns as $campaign)
                     <div class="event-card" onclick="void(0)"
                         style="position: relative; aspect-ratio: 4/5; overflow: hidden; cursor: pointer; group">

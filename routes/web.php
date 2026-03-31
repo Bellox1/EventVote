@@ -15,6 +15,15 @@ use App\Models\Vote;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+// Info Routes
+Route::get('/aide', function () {
+    return view('help');
+})->name('help');
+
+Route::get('/politique-de-confidentialite', function () {
+    return view('privacy');
+})->name('privacy');
+
 // Public routes
 Route::get('/', function () {
     $activeCampaigns = Campaign::where('status', '=', 'active')
