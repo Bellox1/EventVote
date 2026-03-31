@@ -17,8 +17,8 @@ class CandidateController extends Controller
     {
         $campaign = Campaign::where('slug', '=', $slug)->firstOrFail();
         $candidate = Candidate::where('campaign_id', '=', $campaign->id)
-            ->where('id', $id)
-            ->where('status', 'accepted')
+            ->where('id', '=', $id)
+            ->where('status', '=', 'accepted')
             ->firstOrFail();
 
         // Track candidate view/visit
@@ -42,7 +42,7 @@ class CandidateController extends Controller
         $campaign = Campaign::where('slug', '=', $slug)->firstOrFail();
         
         // Vérifier si l'utilisateur a déjà postulé
-        if (Candidate::where('campaign_id', $campaign->id)->where('user_id', Auth::id())->exists()) {
+        if (Candidate::where('campaign_id', '=', $campaign->id)->where('user_id', '=', Auth::id())->exists()) {
             return redirect()->route('campaigns.show', $campaign->slug)
                 ->with('error', 'Vous avez déjà déposé une candidature pour ce scrutin.');
         }
@@ -55,7 +55,7 @@ class CandidateController extends Controller
         $campaign = Campaign::where('slug', '=', $slug)->firstOrFail();
 
         // Sécurité supplémentaire
-        if (Candidate::where('campaign_id', $campaign->id)->where('user_id', Auth::id())->exists()) {
+        if (Candidate::where('campaign_id', '=', $campaign->id)->where('user_id', '=', Auth::id())->exists()) {
             return redirect()->route('campaigns.show', $campaign->slug)
                 ->with('error', 'Vous avez déjà déposé une candidature pour ce scrutin.');
         }
@@ -130,7 +130,7 @@ class CandidateController extends Controller
                 $data['sort_order'] = $request->sort_order;
             } else {
                 // Auto-increment logic
-                $maxOrder = Candidate::where('campaign_id', $campaign->id)->max('sort_order');
+                $maxOrder = Candidate::where('campaign_id', '=', $campaign->id)->max('sort_order');
                 $data['sort_order'] = $maxOrder + 1;
             }
         }
@@ -184,7 +184,7 @@ class CandidateController extends Controller
 
     public function editApply($id)
     {
-        $candidate = Candidate::where('user_id', Auth::id())->findOrFail($id);
+        $candidate = Candidate::where('user_id', '=', Auth::id())->findOrFail($id);
         if ($candidate->status !== 'pending') {
             return back()->with('error', 'Modification impossible.');
         }
@@ -194,7 +194,7 @@ class CandidateController extends Controller
 
     public function updateApply(Request $request, $id)
     {
-        $candidate = Candidate::where('user_id', Auth::id())->findOrFail($id);
+        $candidate = Candidate::where('user_id', '=', Auth::id())->findOrFail($id);
         if ($candidate->status !== 'pending') {
             return back()->with('error', 'Modification impossible.');
         }
@@ -226,18 +226,18 @@ class CandidateController extends Controller
 
     public function destroyApply($id)
     {
-        $candidate = Candidate::where('user_id', Auth::id())->findOrFail($id);
+        $candidate = Candidate::where('user_id', '=', Auth::id())->findOrFail($id);
         $candidate->delete();
         return redirect()->route('dashboard')->with('success', 'Candidature annulée.');
     }
 
     public function stats($id)
     {
-        $candidate = Candidate::where('user_id', Auth::id())->where('status', 'accepted')->findOrFail($id);
+        $candidate = Candidate::where('user_id', '=', Auth::id())->where('status', '=', 'accepted')->findOrFail($id);
         $campaign = $candidate->campaign;
         
-        $competitors = Candidate::where('campaign_id', $campaign->id)
-            ->where('status', 'accepted')
+        $competitors = Candidate::where('campaign_id', '=', $campaign->id)
+            ->where('status', '=', 'accepted')
             ->withCount('votes')
             ->orderBy('votes_count', 'desc')
             ->get();

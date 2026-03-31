@@ -21,7 +21,7 @@ class CampaignController extends Controller
         if (!$request->has('search')) {
             session(['last_campaigns_index' => $request->fullUrl()]);
         }
-        $query = Campaign::where('status', 'active');
+        $query = Campaign::where('status', '=', 'active');
         $total = $query->count();
         
         // Boutique Dynamic Pagination Logic
@@ -48,8 +48,8 @@ class CampaignController extends Controller
 
     public function show(Request $request, $slug)
     {
-        $campaign = Campaign::where('slug', $slug)
-            ->orWhere('code', strtoupper($slug))
+        $campaign = Campaign::where('slug', '=', $slug)
+            ->orWhere('code', '=', strtoupper($slug))
             ->firstOrFail();
 
         if ($campaign->status !== 'active' && (!Auth::check() || (Auth::id() !== $campaign->user_id && !Auth::user()->isAdmin()))) {
@@ -69,7 +69,7 @@ class CampaignController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
-        $topCandidates = $campaign->candidates()->where('status', 'accepted')->orderByDesc('votes_count')->limit(3)->get();
+        $topCandidates = $campaign->candidates()->where('status', '=', 'accepted')->orderByDesc('votes_count')->limit(3)->get();
 
         // Track Visit & View
         $visit = CampaignVisit::firstOrCreate([
@@ -159,7 +159,7 @@ class CampaignController extends Controller
 
     public function manage($slug)
     {
-        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->where('user_id', '=', Auth::id())->firstOrFail();
         $allCandidates = $campaign->allCandidates()->latest()->get();
         $votesCount = $campaign->votes()->count();
         $results = $campaign->candidates()
@@ -173,7 +173,7 @@ class CampaignController extends Controller
     public function join(Request $request)
     {
         $code = strtoupper($request->code);
-        $campaign = Campaign::where('code', $code)->first();
+        $campaign = Campaign::where('code', '=', $code)->first();
 
         if ($campaign) {
             return redirect()->route('candidates.apply', $campaign->slug);
@@ -184,13 +184,13 @@ class CampaignController extends Controller
 
     public function edit($slug)
     {
-        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->where('user_id', '=', Auth::id())->firstOrFail();
         return view('campaigns.edit', compact('campaign'));
     }
 
     public function update(Request $request, $slug)
     {
-        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->where('user_id', '=', Auth::id())->firstOrFail();
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -227,7 +227,7 @@ class CampaignController extends Controller
 
     public function destroy($slug)
     {
-        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->where('user_id', '=', Auth::id())->firstOrFail();
 
         if ($campaign->image_path) {
             Storage::disk('public')->delete($campaign->image_path);
@@ -243,7 +243,7 @@ class CampaignController extends Controller
 
     public function updateSettings(Request $request, $slug)
     {
-        $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->where('user_id', '=', Auth::id())->firstOrFail();
         
         $request->validate([
             'status' => 'required|in:active,paused,ended',
@@ -262,7 +262,7 @@ class CampaignController extends Controller
 
     public function getStats($slug)
     {
-        $campaign = Campaign::where('slug', $slug)->firstOrFail();
+        $campaign = Campaign::where('slug', '=', $slug)->firstOrFail();
         $user = Auth::user();
 
         // High Security: Only validated campaigns (active, paused, ended) have stats access
@@ -271,9 +271,9 @@ class CampaignController extends Controller
         }
 
         // Security: Creator, Admin or Accepted Candidate
-        $isCandidate = Candidate::where('campaign_id', $campaign->id)
-            ->where('user_id', $user->id)
-            ->where('status', 'accepted')
+        $isCandidate = Candidate::where('campaign_id', '=', $campaign->id)
+            ->where('user_id', '=', $user->id)
+            ->where('status', '=', 'accepted')
             ->exists();
 
         if ($user->id !== $campaign->user_id && !$user->isAdmin() && !$isCandidate) {
@@ -281,11 +281,11 @@ class CampaignController extends Controller
         }
 
         $candidates = $campaign->candidates()->where('status', 'accepted')->get();
-        $totalAmount = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('amount');
-        $totalVotes = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('votes_count');
+        $totalAmount = Vote::where('campaign_id', '=', $campaign->id)->where('status', '=', 'confirmed')->sum('amount');
+        $totalVotes = Vote::where('campaign_id', '=', $campaign->id)->where('status', '=', 'confirmed')->sum('votes_count');
 
         // Vues & Visites par candidat depuis campaign_visits
-        $candidateViews = \App\Models\CampaignVisit::where('campaign_id', $campaign->id)
+        $candidateViews = \App\Models\CampaignVisit::where('campaign_id', '=', $campaign->id)
             ->whereNotNull('candidate_id')
             ->get()
             ->groupBy('candidate_id');
@@ -313,8 +313,8 @@ class CampaignController extends Controller
             $data = [];
             for ($i = 11; $i >= 0; $i--) {
                 $hour = now()->subHours($i);
-                $votes = Vote::where('candidate_id', $candidate->id)
-                    ->where('status', 'confirmed')
+                $votes = Vote::where('candidate_id', '=', $candidate->id)
+                    ->where('status', '=', 'confirmed')
                     ->whereBetween('created_at', [$hour->copy()->startOfHour(), $hour->copy()->endOfHour()])
                     ->sum('votes_count');
                 $data[] = (int) $votes;
@@ -323,9 +323,9 @@ class CampaignController extends Controller
             $cViews = $candidateViews->get($candidate->id, collect());
             
             // Calcul du breakdown spécifique au candidat
-            $cTotalVotes     = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->sum('votes_count') ?: 1;
-            $cSystemVotes    = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
-            $cAnonymousVotes = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->whereNull('user_id')->sum('votes_count');
+            $cTotalVotes     = Vote::where('candidate_id', '=', $candidate->id)->where('status', '=', 'confirmed')->sum('votes_count') ?: 1;
+            $cSystemVotes    = Vote::where('candidate_id', '=', $candidate->id)->where('status', '=', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
+            $cAnonymousVotes = Vote::where('candidate_id', '=', $candidate->id)->where('status', '=', 'confirmed')->whereNull('user_id')->sum('votes_count');
 
             $datasets[] = [
                 'label'           => $candidate->name,
@@ -344,8 +344,8 @@ class CampaignController extends Controller
         }
 
         // Recent Payments – anonymisés, jamais de nom
-        $recentVotes = Vote::where('campaign_id', $campaign->id)
-            ->where('status', 'confirmed')
+        $recentVotes = Vote::where('campaign_id', '=', $campaign->id)
+            ->where('status', '=', 'confirmed')
             ->with(['candidate'])
             ->latest()
             ->limit(10)
@@ -361,9 +361,9 @@ class CampaignController extends Controller
             });
 
         // Breakdown Comptes Système vs Anonymes
-        $totalVotesInt  = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('votes_count') ?: 1;
-        $systemVotes    = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
-        $anonymousVotes = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->whereNull('user_id')->sum('votes_count');
+        $totalVotesInt  = Vote::where('campaign_id', '=', $campaign->id)->where('status', '=', 'confirmed')->sum('votes_count') ?: 1;
+        $systemVotes    = Vote::where('campaign_id', '=', $campaign->id)->where('status', '=', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
+        $anonymousVotes = Vote::where('campaign_id', '=', $campaign->id)->where('status', '=', 'confirmed')->whereNull('user_id')->sum('votes_count');
 
         $voterBreakdown = [
             'system'    => (int) $systemVotes,

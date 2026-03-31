@@ -15,7 +15,18 @@
 
     <!-- Vidéo Custom Premium -->
     @if ($campaign->video_path)
-        <div style="margin: 0 0 80px; padding: 0 10%;">
+        <div class="video-section" style="margin: 0 0 60px; padding: 0;">
+            <style>
+                @media (max-width: 768px) {
+                    .video-section { padding: 0 !important; margin-bottom: 40px !important; }
+                    .video-container { border-radius: 0 !important; }
+                    .video-btn-skip { width: 45px !important; height: 45px !important; }
+                    .video-btn-play { width: 60px !important; height: 60px !important; }
+                    .trio-section { margin: 0 -20px 60px !important; padding: 60px 20px !important; }
+                    .main-showcase { grid-template-columns: 1fr !important; gap: 30px !important; }
+                    .candidate-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important; gap: 30px !important; }
+                }
+            </style>
             <div x-data="{ 
                 playing: false, 
                 showControls: false, 
@@ -45,6 +56,7 @@
                 }
             }" 
             x-ref="container"
+            class="video-container"
             @mouseenter="showControls = true" 
             @mouseleave="showControls = false"
             style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4); background: #000; aspect-ratio: 16/9; cursor: pointer;">
@@ -59,31 +71,29 @@
 
                 <!-- Boutons de saut -10s / +10s (Centrés au survol) -->
                 <div x-show="showControls" x-transition.opacity 
-                     style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 50px; background: rgba(0,0,0,0.2); z-index: 10;">
+                     style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 30px; background: rgba(0,0,0,0.2); z-index: 10;">
                     
-                    <button @click.stop="skip(-10)" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; backdrop-filter: blur(5px);">
+                    <button @click.stop="skip(-10)" class="video-btn-skip" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; backdrop-filter: blur(5px);">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
-                        <span style="position: absolute; bottom: -25px; font-size: 0.75rem; font-weight: 700;">-10s</span>
                     </button>
 
-                    <button @click.stop="togglePlay()" style="background: var(--accent); color: white; width: 80px; height: 80px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; border: none; box-shadow: 0 0 30px rgba(212, 174, 109, 0.4);">
+                    <button @click.stop="togglePlay()" class="video-btn-play" style="background: var(--accent); color: white; width: 80px; height: 80px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; border: none; box-shadow: 0 0 30px rgba(212, 174, 109, 0.4);">
                         <template x-if="!playing">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            <svg width="35" height="35" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                         </template>
                         <template x-if="playing">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            <svg width="35" height="35" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                         </template>
                     </button>
 
-                    <button @click.stop="skip(10)" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; backdrop-filter: blur(5px);">
+                    <button @click.stop="skip(10)" class="video-btn-skip" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; backdrop-filter: blur(5px);">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
-                        <span style="position: absolute; bottom: -25px; font-size: 0.75rem; font-weight: 700;">+10s</span>
                     </button>
                 </div>
 
                 <!-- Barre de contrôle (BAS) -->
                 <div x-show="showControls" x-transition:enter.duration.400ms 
-                     style="position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); z-index: 20;">
+                     style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); z-index: 20;">
                     
                     <!-- Progress Bar -->
                     <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-bottom: 20px; cursor: pointer; position: relative;"
@@ -102,7 +112,7 @@
     @endif
 
     <!-- Main Event Showcase (Image + Info) -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 60px; margin-bottom: 120px; align-items: start;">
+    <div class="main-showcase" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 60px; margin-bottom: 80px; align-items: start;">
         
         <!-- Image -->
         @if ($campaign->image_path)
@@ -161,14 +171,14 @@
     <!-- Elite Selection (Top 3 Leaders) -->
     @if($topCandidates->count() > 0)
         @if ($totalVotes > 0)
-            <div style="background: #F9F6F0; margin: 0 -100px 120px; padding: 100px;">
+            <div class="trio-section" style="background: #F9F6F0; margin: 0 -20px 100px; padding: 80px 40px;">
                 <div style="max-width: 1400px; margin: 0 auto;">
                     <div style="text-align: center; margin-bottom: 80px;">
                         <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; display: block; margin-bottom: 20px;">Le Trio de Tête</span>
                         <h2 style="font-size: 3rem; color: var(--primary); font-family: 'Cormorant Garamond', serif;">Élite du <span style="font-style: italic;">Scrutin.</span></h2>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px;">
+                    <div class="candidate-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
                         @foreach($topCandidates as $index => $candidate)
                         <div style="position: relative; text-align: center;">
                             <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 10; font-size: 1.2rem; font-family: 'Cormorant Garamond', serif;">
@@ -232,7 +242,7 @@
             <h2 style="font-size: 3rem; color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 15px;">Nos <span style="font-style: italic;">Candidat(e)s.</span></h2>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 60px 40px;">
+        <div class="candidate-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 60px 40px;">
             @forelse($candidates as $candidate)
                 <div style="display: flex; flex-direction: column;">
                     <div class="candidate-card" style="position: relative; aspect-ratio: 4/5; overflow: hidden; cursor: pointer; transition: all 0.5s; border-radius: 4px; margin-bottom: 25px;">

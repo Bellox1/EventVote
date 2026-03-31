@@ -3,12 +3,12 @@
 @section('title', 'Récupération de Compte')
 
 @section('content')
-    <div style="max-width: 600px; margin: 60px auto; padding: 0 20px;">
-        <div class="card"
-            style="border-bottom: 6px solid var(--accent); padding: 80px 60px; box-shadow: var(--shadow-hard);">
-            <div style="text-align: center; margin-bottom: 60px;">
+    <div style="max-width: 600px; margin: clamp(20px, 5vh, 60px) auto; padding: 0 15px;">
+        <div class="card auth-card"
+            style="border-bottom: 6px solid var(--accent); padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 60px); box-shadow: var(--shadow-hard); background: white;">
+            <div style="text-align: center; margin-bottom: clamp(30px, 5vw, 60px);">
                 <div
-                    style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--primary); letter-spacing: 0.05em; margin-bottom: 16px; font-weight: 300;">
+                    style="font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 8vw, 3rem); color: var(--primary); letter-spacing: 0.05em; margin-bottom: 16px; font-weight: 300;">
                     VOTE <span style="font-weight: 500; color: var(--accent);">•</span> ÉVÉNEMENTIELLE
                 </div>
                 <div class="ornament" style="margin: 0 auto 32px;"></div>

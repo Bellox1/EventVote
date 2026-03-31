@@ -22,6 +22,9 @@ class PaymentController extends Controller
 
     public function initiatePayment(Request $request)
     {
+        // Mémoriser l'URL de retour
+        session(['payment_return_url' => url()->previous()]);
+
         $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
             'campaign_id'  => 'required|exists:campaigns,id',
@@ -96,6 +99,25 @@ class PaymentController extends Controller
 
     public function callback(Request $request)
     {
-        return redirect()->route('dashboard')->with('success', 'Votre session de vote a été initiée. Vos voix seront comptabilisées dès confirmation du paiement.');
+        $status = $request->input('status');
+        $returnUrl = session('payment_return_url');
+        
+        // Si pas d'URL en session, on essaie de revenir en arrière ou vers l'accueil
+        if (!$returnUrl) {
+            $returnUrl = route('welcome');
+        }
+
+        session()->forget('payment_return_url');
+
+        if ($status === 'canceled') {
+            return redirect($returnUrl)->with('error', 'Le paiement a été annulé.');
+        }
+
+        if ($status === 'approved' || $status === 'successful') {
+            return redirect($returnUrl)->with('success', 'Votre paiement a été approuvé ! Vos voix seront comptabilisées sous peu.');
+        }
+
+        // Par défaut, si on revient sans succès (annulation, échec ou retour manuel)
+        return redirect($returnUrl)->with('error', 'L\'opération de paiement a été annulée ou interrompue.');
     }
 }

@@ -21,6 +21,10 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         [x-cloak] {
             display: none !important;
         }
@@ -86,14 +90,10 @@
         }
 
         header.scrolled {
-            background: rgba(0, 50, 41, 0.95);
-            backdrop-filter: blur(10px);
-            height: 65px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        header.hidden {
-            transform: translateY(-100%);
+            background: rgba(0, 50, 41, 0.98);
+            backdrop-filter: blur(15px);
+            height: 70px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
 
         .header-content {
@@ -359,23 +359,26 @@
         }
 
         /* Subtle Custom Scrollbar for Drawer Navigation */
-        nav::-webkit-scrollbar {
-            width: 4px; /* Even thinner */
-        }
-
-        nav::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        nav::-webkit-scrollbar-thumb {
-            background: rgba(212, 174, 109, 0.35); /* Muted/Lower Opacity gold */
-            border-radius: 10px;
-            transition: background 0.3s;
-        }
-
         nav::-webkit-scrollbar-thumb:hover {
             background: rgba(212, 174, 109, 0.6); /* Slightly more visible on hover */
+        }
+
+        /* Responsive Utilities */
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .logo-text { font-size: 1.1rem !important; }
+            .side-drawer { max-width: 85% !important; padding: 40px 25px !important; }
+            .drawer-link { font-size: 1.6rem !important; margin-bottom: 20px !important; }
+            header { height: 60px !important; }
+            header.scrolled { height: 60px !important; }
+            .header-content { grid-template-columns: 1fr auto 1fr !important; }
+            main .container { padding-top: 100px !important; padding-left: 15px !important; padding-right: 15px !important; }
+            .nav-side-right { gap: 10px !important; }
+            .card { padding: 25px 20px !important; } /* Adaptation des cartes sur mobile */
+        }
+
+        @media (min-width: 769px) {
+            .mobile-only { display: none !important; }
         }
     </style>
     @yield('styles')
@@ -384,17 +387,9 @@
 <body x-data="{
     mobileMenu: false,
     scrolled: false,
-    headerHidden: false,
-    lastScrollY: 0,
     init() {
         window.addEventListener('scroll', () => {
             this.scrolled = window.pageYOffset > 50;
-            if (window.pageYOffset > this.lastScrollY && window.pageYOffset > 100) {
-                this.headerHidden = true;
-            } else {
-                this.headerHidden = false;
-            }
-            this.lastScrollY = window.pageYOffset;
         });
     }
 } " x-init="init()">
@@ -585,7 +580,7 @@
     </div>
 
     <!-- Smart Header -->
-    <header :class="{ 'scrolled': scrolled, 'hidden': headerHidden }">
+    <header :class="{ 'scrolled': scrolled }">
         <div class="container" style="height: 100%;">
             <div class="header-content">
                 <div class="nav-side-left">
@@ -615,27 +610,26 @@
 
                 <div class="nav-side-right">
                     @guest
-                        <a href="{{ route('login') }}" class="explorer-text"
+                        <a href="{{ route('login') }}" class="explorer-text desktop-only"
                             :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }"
                             style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s;"
                             onmouseover="this.style.color='var(--accent)'"
                             onmouseout="this.style.color=(scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)'">
-                            Se Connecter
+                            Connecter
                         </a>
                     @else
-                        <a href="{{ route('profile.show') }}" class="explorer-text"
+                        <a href="{{ route('dashboard') }}" class="explorer-text desktop-only"
                             :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }"
-                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s; margin-right: 25px;"
-                            onmouseover="this.style.color='var(--accent)'"
-                            onmouseout="this.style.color=(scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)'">
-                            Profil
-                        </a>
-                        <a href="{{ route('dashboard') }}" class="explorer-text"
-                            :style="{ color: (scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)' }"
-                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s;"
+                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s; margin-right: 20px;"
                             onmouseover="this.style.color='var(--accent)'"
                             onmouseout="this.style.color=(scrolled || @json(isset($isWelcome))) ? 'white' : 'var(--primary)'">
                             Dashboard
+                        </a>
+                        <!-- Petit indicateur de profil mobile -->
+                        <a href="{{ route('profile.show') }}" class="mobile-only" style="color: var(--accent);">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
                         </a>
                     @endguest
                 </div>
@@ -643,10 +637,10 @@
         </div>
     </header>
 
-    <main>
+    <main style="flex: 1;">
         @yield('welcome-hero')
 
-        <div class="container" style="min-height: 50vh; padding-bottom: 100px; padding-top: 120px;">
+        <div class="container" style="min-height: 50vh; padding-bottom: 80px; padding-top: 130px; box-sizing: border-box;">
             @if (session('success'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -670,6 +664,21 @@
                             text: "{{ session('error') }}",
                             icon: 'error',
                             confirmButtonColor: '#ff6b6b',
+                            background: '#fff8e7',
+                            color: '#003229'
+                        });
+                    });
+                </script>
+            @endif
+
+            @if (session('info'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            title: 'Information',
+                            text: "{{ session('info') }}",
+                            icon: 'info',
+                            confirmButtonColor: '#d4ae6d',
                             background: '#fff8e7',
                             color: '#003229'
                         });

@@ -21,10 +21,10 @@
     @-webkit-keyframes blink-animation { to { visibility: hidden; } }
 </style>
 
-<div style="text-align: center; margin-bottom: 80px;">
-    <div style="font-family: 'Cormorant Garamond', serif; font-size: 4rem; color: var(--primary); margin-bottom: 10px;">Bonjour, {{ Auth::user()->name }}</div>
+<div style="text-align: center; margin-bottom: 60px; padding: 0 15px;">
+    <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 8vw, 4rem); color: var(--primary); margin-bottom: 10px; line-height: 1.1;">Bonjour, {{ Auth::user()->name }}</div>
     <div class="ornament" style="margin: 0 auto 20px;"></div>
-    <p style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; font-size: 0.8rem;">Gestion de vos sessions & participations</p>
+    <p style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; font-size: clamp(0.6rem, 3vw, 0.8rem);">Gestion de vos sessions & participations</p>
 </div>
 
 <div style="display: flex; justify-content: center; margin-bottom: 80px;">
@@ -36,7 +36,7 @@
 <div x-data="{ tab: '{{ $myPending->isNotEmpty() ? 'pending' : 'active' }}' }" style="max-width: 1100px; margin: 0 auto; padding-bottom: 100px;">
 
     <!-- TABS -->
-    <div style="display: flex; justify-content: center; gap: 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px;">
+    <div style="display: flex; justify-content: center; gap: clamp(20px, 5vw, 60px); border-bottom: 1px solid var(--border); margin-bottom: 60px; flex-wrap: wrap; padding: 0 10px;">
         @if($myPending->isNotEmpty())
             <button @click="tab = 'pending'" :class="{ 'active-tab': tab === 'pending' }" class="tab-btn">Demandes en Attente ({{ $myPending->count() }})</button>
         @endif
@@ -64,7 +64,7 @@
                     @endif
 
                     <!-- IMAGE ET INFOS -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; background: white;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); background: white;">
                         <div style="background: #051a16; overflow: hidden; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--border);">
                             @if($camp->image_path)
                                 <img src="{{ \Illuminate\Support\Str::startsWith($camp->image_path, 'http') ? $camp->image_path : asset('storage/' . $camp->image_path) }}" style="width: 100%; height: 100%; object-fit: cover; min-height: 350px;">
@@ -76,7 +76,7 @@
                         <div style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
                                 <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em;">RÉFÉRENCE #{{ $camp->code }}</div>
-                                <h3 style="font-size: 1.8rem; color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; line-height: 1.2;">{{ $camp->name }}</h3>
+                                <h3 style="font-size: clamp(1.4rem, 6vw, 1.8rem); color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; line-height: 1.2;">{{ $camp->name }}</h3>
                                 <div style="margin-top: 15px;">
                                     @php
                                         $badges = [
@@ -188,9 +188,9 @@
         @if($myActive->isNotEmpty())
         <div style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 80px;">
             <!-- Selector and Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-left: 5px solid var(--accent);">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-left: 5px solid var(--accent); flex-wrap: wrap; gap: 20px;">
                 <div>
-                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--primary); margin: 0;">Performances Live</h2>
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.5rem, 6vw, 2.2rem); color: var(--primary); margin: 0;">Performances Live</h2>
                     <p style="font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; margin-top: 5px;">Mise à jour toutes les 5 secondes</p>
                 </div>
                 <select x-model="selectedSlug" @change="fetchStats()" style="padding: 12px 25px; border: 1px solid var(--border); border-radius: 40px; font-family: 'Jost', sans-serif; font-weight: 600; color: var(--primary); cursor: pointer; outline: none;">
@@ -229,9 +229,9 @@
 
             <!-- Breakdown Électeurs : Système vs Anonymes -->
             <template x-if="stats.voter_breakdown">
-                <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); padding: 25px 30px;">
+                <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); padding: 25px 30px; margin-top: 20px;">
                     <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 18px;">Origine des Votes</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                         <!-- Comptes Système -->
                         <div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
@@ -259,15 +259,16 @@
             </template>
 
             <!-- Tableau Vues & Visites par Candidat (Live) -->
-            <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
-                <div style="padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden; margin-top: 20px;">
+                <div style="padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em;">👁 Vues &amp; Visites par Candidat</span>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div class="live-blink" style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
                         <span style="font-size: 0.6rem; color: #10b981; font-weight: 700; text-transform: uppercase;">Live</span>
                     </div>
                 </div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px;">
                     <thead style="background: #f9f6f0; font-size: 0.6rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.1em;">
                         <tr>
                             <th style="padding: 14px 25px; text-align: left;">Candidat</th>
@@ -299,10 +300,11 @@
                         </template>
                     </tbody>
                 </table>
+                </div>
             </div>
 
             <!-- Graph Section -->
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; align-items: start; margin-top: 40px;">
                 <!-- Recent Payments Sidebar -->
                 <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
                     <div style="padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
@@ -348,7 +350,7 @@
                 </div>
             @endif
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; background: white;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); background: white;">
                 <div style="background: #051a16; overflow: hidden; display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--border);">
                     @if($camp->image_path)
                         <img src="{{ \Illuminate\Support\Str::startsWith($camp->image_path, 'http') ? $camp->image_path : asset('storage/' . $camp->image_path) }}" style="width: 100%; height: 100%; object-fit: cover; min-height: 350px;">
@@ -360,7 +362,7 @@
                 <div style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em;">RÉFÉRENCE #{{ $camp->code }}</div>
-                        <h3 style="font-size: 2.2rem; color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; margin-bottom: 15px; line-height: 1.1;">{{ $camp->name }}</h3>
+                        <h3 style="font-size: clamp(1.5rem, 6vw, 2.2rem); color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; margin-bottom: 15px; line-height: 1.1;">{{ $camp->name }}</h3>
                         <div>
                             @php
                                 $badges = [
@@ -450,7 +452,7 @@
                     @endif
 
                     <!-- 2. IMAGE ET INFOS -->
-                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; background: white;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); background: white;">
                         <!-- Zone Image -->
                         <div style="background: #051a16; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; border-right: 1px solid var(--border);">
                             @if($candidacy->image_path)
@@ -470,7 +472,7 @@
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                                     <div>
                                         <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 10px;">Votre Candidature pour</div>
-                                        <h3 style="font-size: 2.22rem; color: var(--primary); font-family: 'Cormorant Garamond', serif; line-height: 1.1; margin: 0;">{{ $camp->name }}</h3>
+                                        <h3 style="font-size: clamp(1.5rem, 6vw, 2.22rem); color: var(--primary); font-family: 'Cormorant Garamond', serif; line-height: 1.1; margin: 0;">{{ $camp->name }}</h3>
                                     </div>
                                     <div style="text-align: right;">
                                         <div style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">DÉPOSÉ LE</div>
@@ -539,41 +541,43 @@
     {{-- SECTION VOTES --}}
     <div x-show="tab === 'votes'" x-transition x-cloak>
         <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead style="background: var(--primary); color: white; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em;">
-                    <tr>
-                        <th style="padding: 25px;">Scrutin</th>
-                        <th style="padding: 25px;">Votre Choix</th>
-                        <th style="padding: 25px; text-align: center;">Voix</th>
-                        <th style="padding: 25px; text-align: right;">Total Payé</th>
-                        <th style="padding: 25px; text-align: right;">Date du Vote</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($myVotes as $vote)
-                        <tr style="border-bottom: 1px solid var(--border); transition: 0.3s;" onmouseover="this.style.background='#F9F6F0'" onmouseout="this.style.background='white'">
-                            <td style="padding: 25px;">
-                                <div style="font-weight: 700; color: var(--primary);">{{ $vote->campaign->name }}</div>
-                            </td>
-                            <td style="padding: 25px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
-                                    <div style="font-weight: 600;">{{ $vote->candidate->name }}</div>
-                                </div>
-                            </td>
-                            <td style="padding: 25px; text-align: center; font-weight: 700;">{{ $vote->votes_count }}</td>
-                            <td style="padding: 25px; text-align: right; font-weight: 700; color: #10b981;">{{ number_format($vote->amount, 0, ',', ' ') }} XOF</td>
-                            <td style="padding: 25px; text-align: right; color: var(--text-dim); font-size: 0.85rem;">
-                                {{ $vote->created_at->format('d/m/Y à H:i') }}
-                            </td>
-                        </tr>
-                    @empty
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 700px;">
+                    <thead style="background: var(--primary); color: white; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em;">
                         <tr>
-                            <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-dim); font-style: italic;">Vous n'avez pas encore émis de vote.</td>
+                            <th style="padding: 25px;">Scrutin</th>
+                            <th style="padding: 25px;">Votre Choix</th>
+                            <th style="padding: 25px; text-align: center;">Voix</th>
+                            <th style="padding: 25px; text-align: right;">Total Payé</th>
+                            <th style="padding: 25px; text-align: right;">Date du Vote</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($myVotes as $vote)
+                            <tr style="border-bottom: 1px solid var(--border); transition: 0.3s;" onmouseover="this.style.background='#F9F6F0'" onmouseout="this.style.background='white'">
+                                <td style="padding: 25px;">
+                                    <div style="font-weight: 700; color: var(--primary);">{{ $vote->campaign->name }}</div>
+                                </td>
+                                <td style="padding: 25px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
+                                        <div style="font-weight: 600;">{{ $vote->candidate->name }}</div>
+                                    </div>
+                                </td>
+                                <td style="padding: 25px; text-align: center; font-weight: 700;">{{ $vote->votes_count }}</td>
+                                <td style="padding: 25px; text-align: right; font-weight: 700; color: #10b981;">{{ number_format($vote->amount, 0, ',', ' ') }} XOF</td>
+                                <td style="padding: 25px; text-align: right; color: var(--text-dim); font-size: 0.85rem;">
+                                    {{ $vote->created_at->format('d/m/Y à H:i') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-dim); font-style: italic;">Vous n'avez pas encore émis de vote.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

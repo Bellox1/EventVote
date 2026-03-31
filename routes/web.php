@@ -17,9 +17,13 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
-    $activeCampaigns = Campaign::where('status', 'active')->latest()->take(6)->get();
+    $activeCampaigns = Campaign::where('status', '=', 'active')
+        ->withCount(['candidates', 'votes'])
+        ->latest()
+        ->take(6)
+        ->get();
     return view('welcome', compact('activeCampaigns'));
-});
+})->name('welcome');
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -48,7 +52,7 @@ Route::middleware('auth')->group(function () {
         $myActive = $myCreated->whereIn('status', ['active', 'paused', 'ended']);
         
         // 2. Mes Dossiers (Candidatures envoyées)
-        $myCandidacies = \App\Models\Candidate::where('user_id', $user->id)
+        $myCandidacies = \App\Models\Candidate::where('user_id', '=', $user->id)
             ->with(['campaign' => function($q) {
                 $q->withCount('votes');
             }])
@@ -60,7 +64,7 @@ Route::middleware('auth')->group(function () {
         $participations = collect();
         if ($myActive->isEmpty() && $myCandidacies->isEmpty()) {
             $votedCampaignIds = $user->votes()->pluck('campaign_id')->unique();
-            $participations = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->where('status', 'active')->latest()->get();
+            $participations = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->where('status', '=', 'active')->latest()->get();
             if ($participations->isNotEmpty()) {
                 $contextLabel = 'Participations';
             }

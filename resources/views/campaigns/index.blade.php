@@ -3,31 +3,31 @@
 @section('title', 'Explorer les programmes')
 
 @section('content')
-    <div style="text-align: center; margin-bottom: 100px;">
+    <div style="text-align: center; margin-bottom: 80px;">
         <div
-            style="font-size: 0.8rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 24px; opacity: 0.9;">
+            style="font-size: 0.75rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 24px; opacity: 0.9;">
             Excellence & Intégrité</div>
-        <h1 style="font-size: 4rem; color: var(--primary); margin-bottom: 20px; font-weight: 300;">Sessions <span
+        <h1 style="font-size: clamp(2.2rem, 8vw, 4rem); color: var(--primary); margin-bottom: 20px; font-weight: 300; line-height: 1.1;">Sessions <span
                 style="font-style: italic; font-weight: 400;">Ouvertes.</span></h1>
         <div class="ornament" style="margin: 0 auto 32px; width: 60px;"></div>
         <p
-            style="color: var(--text-dim); font-size: 1.15rem; max-width: 650px; margin: 0 auto; line-height: 1.8; font-family: 'Jost', sans-serif;">
+            style="color: var(--text-dim); font-size: 1.1rem; max-width: 650px; margin: 0 auto; line-height: 1.8; font-family: 'Jost', sans-serif; padding: 0 15px;">
             Parcourez les scrutins actuellement en cours sur notre plateforme exclusive. Chaque session est un engagement
             vers la transparence et la distinction.</p>
     </div>
 
-    <div id="results" style="max-width: 600px; margin: 0 auto 80px;">
+    <div id="results" style="max-width: 600px; margin: 0 auto 60px; padding: 0 15px;">
         <form action="{{ route('campaigns.index') }}#results" method="GET" style="position: relative; display: flex; align-items: center;">
             <input type="text" name="search" value="{{ request('search') }}" 
-                placeholder="Rechercher une session..." 
-                style="width: 100%; padding: 20px 30px; padding-right: 120px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: white; transition: all 0.3s; box-shadow: var(--shadow-soft);"
+                placeholder="Recherche..." 
+                style="width: 100%; padding: 18px 25px; padding-right: 90px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 0.95rem; color: var(--primary); background: white; transition: all 0.3s; box-shadow: var(--shadow-soft);"
                 onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='var(--shadow-hard)'"
                 onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='var(--shadow-soft)'">
             <button type="submit" 
-                style="position: absolute; right: 8px; top: 8px; bottom: 8px; background: var(--primary); color: white; border: none; padding: 0 25px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 2px;"
+                style="position: absolute; right: 6px; top: 6px; bottom: 6px; background: var(--primary); color: white; border: none; padding: 0 15px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 2px;"
                 onmouseover="this.style.background='var(--accent)';"
                 onmouseout="this.style.background='var(--primary)';"
-            >TROUVER</button>
+            >ALLER</button>
         </form>
         @if(request('search'))
             <div style="margin-top: 20px; text-align: center; color: var(--text-dim); font-size: 0.9rem; font-style: italic;">
@@ -37,7 +37,7 @@
     </div>
 
     <div class="grid"
-        style="margin-bottom: 120px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 60px;">
+        style="margin-bottom: 120px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
         @forelse($campaigns as $campaign)
             <div class="card"
                 style="text-decoration: none; display: flex; flex-direction: column; border: none; background: white; padding: 0; overflow: hidden; transition: all 0.5s;">
@@ -75,7 +75,7 @@
                     @endif
                 </div>
 
-                <div style="padding: 40px;">
+                <div class="campaign-card-body" style="padding: 30px;">
                     <div
                         style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
                         REF: #{{ $campaign->code }}</div>

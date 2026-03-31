@@ -4,15 +4,15 @@
 
 @section('content')
 <div style="max-width: 900px; margin: 60px auto; padding: 0 20px;">
-    <div class="card" style="border-bottom: 6px solid var(--accent); padding: 80px 60px; box-shadow: var(--shadow-hard);">
+    <div class="card" style="border-bottom: 6px solid var(--accent); padding: clamp(40px, 8vw, 80px) clamp(15px, 5vw, 60px); box-shadow: var(--shadow-hard);">
         
         <!-- Header -->
-        <div style="text-align: center; margin-bottom: 80px;">
-            <div style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--primary); letter-spacing: 0.05em; margin-bottom: 16px; font-weight: 300;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 7vw, 3rem); color: var(--primary); letter-spacing: 0.05em; margin-bottom: 16px; font-weight: 300; line-height: 1.2;">
                 MODIFICATION <span style="font-weight: 500; color: var(--accent);">•</span> SESSION
             </div>
             <div class="ornament" style="margin: 0 auto 32px;"></div>
-            <h1 style="font-size: 1.2rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4em; font-weight: 400; font-family: 'Jost', sans-serif;">
+            <h1 style="font-size: clamp(0.7rem, 4vw, 1.2rem); color: var(--primary); text-transform: uppercase; letter-spacing: 0.4em; font-weight: 400; font-family: 'Jost', sans-serif;">
                 Ajustement des Paramètres</h1>
         </div>
         
@@ -44,8 +44,16 @@
 
                 <div>
                     <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Description / Objectifs</label>
-                    <textarea name="description" rows="4" placeholder="Veuillez décrire l'enjeu de ce scrutin..."
-                        style="width: 100%; border: 1px solid var(--border); padding: 20px 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: vertical; min-height: 150px;">{{ $campaign->description }}</textarea>
+                    <textarea name="description" rows="6" placeholder="Veuillez décrire l'enjeu de ce scrutin..."
+                        x-data="{ 
+                            resize() { 
+                                $el.style.height = '200px'; 
+                                $el.style.height = $el.scrollHeight + 'px' 
+                            } 
+                        }"
+                        x-init="resize()"
+                        @input="resize()"
+                        style="width: 100%; border: 1px solid var(--border); padding: 25px; border-radius: 4px; font-size: 1.1rem; font-family: 'Jost', sans-serif; resize: none; min-height: 200px; overflow: hidden; transition: height 0.1s ease; -webkit-appearance: none; background: white; display: block;">{{ $campaign->description }}</textarea>
                 </div>
             </div>
 
@@ -53,7 +61,7 @@
             <div style="display: flex; flex-direction: column; gap: 35px;">
                 <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Finance & Monétisation</div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 30px;">
                     <div>
                         <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Prix d'un Vote (En Devise)</label>
                         <input type="number" name="vote_price" value="{{ old('vote_price', $campaign->vote_price) }}" required min="0" placeholder="Ex: 100"
@@ -121,9 +129,9 @@
                 </p>
             </div>
 
-            <div style="display: flex; gap: 20px; margin-top: 30px;">
-                <a href="{{ route('dashboard') }}" class="btn btn-outline" style="flex: 1; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">ANNULER</a>
-                <button type="submit" class="btn btn-primary" style="flex: 2; height: 75px; font-size: 1rem; border-radius: 4px;">ENREGISTRER LES MODIFICATIONS</button>
+            <div style="display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap;">
+                <a href="{{ route('dashboard') }}" class="btn btn-outline" style="flex: 1; min-width: 150px; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">ANNULER</a>
+                <button type="submit" class="btn" style="flex: 2; min-width: 250px; height: 75px; font-size: 1rem; border-radius: 4px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">ENREGISTRER LES MODIFICATIONS</button>
             </div>
         </form>
     </div>
