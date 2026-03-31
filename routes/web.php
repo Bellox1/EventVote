@@ -24,6 +24,12 @@ Route::get('/politique-de-confidentialite', function () {
     return view('privacy');
 })->name('privacy');
 
+Route::get('/tarification', function () {
+    return view('pricing');
+})->name('pricing');
+
+Route::post('/contact', [AdminController::class, 'sendContact'])->name('contact.send');
+
 // Public routes
 Route::get('/', function () {
     $activeCampaigns = Campaign::where('status', '=', 'active')
@@ -55,24 +61,35 @@ Route::middleware('auth')->group(function () {
         $user = Auth::user();
         $contextLabel = 'Mes Sessions';
         
-        // 1. My created campaigns
-        $myCreated = $user->campaigns()->latest()->get();
+        // 1. My created campaigns with revenue calculation
+        $myCreated = $user->campaigns()
+            ->withSum(['votes as total_amount' => function($q) { $q->where('status', '=', 'confirmed'); }], 'amount')
+            ->latest()
+            ->get()
+            ->map(function($campaign) {
+                $total = $campaign->total_amount ?? 0;
+                $campaign->creator_net = $total * 0.98; // Application des 2% (on garde 98%)
+                return $campaign;
+            });
+
         $myPending = $myCreated->whereIn('status', ['pending', 'rejected']);
         $myActive = $myCreated->whereIn('status', ['active', 'paused', 'ended']);
         
+        $totalCreatorNet = $myCreated->sum('creator_net');
+
         // 2. Mes Dossiers (Candidatures envoyées)
         $myCandidacies = \App\Models\Candidate::where('user_id', '=', $user->id)
             ->with(['campaign' => function($q) {
-                $q->withCount('votes');
+                $q->withCount(['votes' => function($vq) { $vq->where('status', '=', 'confirmed'); }]);
             }])
-            ->withCount('votes')
+            ->withCount(['votes' => function($q) { $q->where('status', '=', 'confirmed'); }])
             ->latest()
             ->get();
 
         // 3. Participations (en tant qu'électeur)
         $participations = collect();
         if ($myActive->isEmpty() && $myCandidacies->isEmpty()) {
-            $votedCampaignIds = $user->votes()->pluck('campaign_id')->unique();
+            $votedCampaignIds = $user->votes()->where('status', 'confirmed')->pluck('campaign_id')->unique();
             $participations = \App\Models\Campaign::whereIn('id', $votedCampaignIds)->where('status', '=', 'active')->latest()->get();
             if ($participations->isNotEmpty()) {
                 $contextLabel = 'Participations';
@@ -86,7 +103,8 @@ Route::middleware('auth')->group(function () {
             'myCandidacies' => $myCandidacies,
             'participations' => $participations,
             'myVotes' => $myVotes,
-            'contextLabel' => $contextLabel
+            'contextLabel' => $contextLabel,
+            'totalCreatorNet' => $totalCreatorNet
         ]);
     })->name('dashboard');
 

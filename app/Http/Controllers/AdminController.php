@@ -77,11 +77,26 @@ class AdminController extends Controller
             ->select('campaigns.*')
             ->withCount(['allCandidates'])
             ->withSum(['votes as votes_sum_count' => function($q) { $q->where('status', '=', 'confirmed'); }], 'votes_count')
-            ->withSum(['votes as revenue' => function($q) { $q->where('status', '=', 'confirmed'); }], 'amount')
+            ->withSum(['votes as total_amount' => function($q) { $q->where('status', '=', 'confirmed'); }], 'amount')
             ->addSelect(['unique_views_count' => CampaignVisit::selectRaw('COUNT(*)')
                 ->whereColumn('campaign_id', 'campaigns.id')
             ])
-            ->get();
+            ->get()
+            ->map(function($campaign) {
+                $total = $campaign->total_amount ?? 0;
+                $campaign->site_fee = $total * 0.02;
+                $campaign->aggregator_fee = $this->calculateAggregatorFee($total);
+                $campaign->net_admin = $campaign->site_fee - $campaign->aggregator_fee;
+                $campaign->creator_net = $total - $campaign->site_fee;
+                return $campaign;
+            });
+
+        $globalStats = [
+            'total_reserved' => $campaignsStats->sum('site_fee'),
+            'total_aggregator' => $campaignsStats->sum('aggregator_fee'),
+            'total_net_admin' => $campaignsStats->sum('net_admin'),
+            'total_revenue' => $totalRevenue
+        ];
 
         $recentTransactions = Vote::where('status', '=', 'confirmed')
             ->with(['user', 'campaign', 'candidate'])
@@ -100,6 +115,7 @@ class AdminController extends Controller
             'users', 
             'campaignsStats',
             'totalRevenue',
+            'globalStats',
             'recentTransactions',
             'totalDemandes',
             'acceptedDemandes',
@@ -107,6 +123,16 @@ class AdminController extends Controller
             'allCandidates',
             'bannedUsers'
         ));
+    }
+
+    private function calculateAggregatorFee($amount)
+    {
+        if ($amount == 0) return 0;
+        if ($amount <= 10000) return 150;
+        if ($amount <= 50000) return 300;
+        if ($amount <= 150000) return 800;
+        if ($amount <= 500000) return 2000;
+        return 2500;
     }
 
     public function manageCampaign(Request $request, $id)
@@ -147,5 +173,36 @@ class AdminController extends Controller
 
         $user->update(['is_banned' => false]);
         return back()->with('success', 'User restored.');
+    }
+
+    public function sendContact(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        $adminEmail = env('SUPER_ADMIN_EMAIL', 'eventvote229@gmail.com');
+
+        Mail::send([], [], function ($message) use ($request, $adminEmail) {
+            $message->to($adminEmail)
+                    ->subject("Contact [{$request->subject}] de {$request->name}")
+                    ->html("
+                        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee;'>
+                            <h2>Nouveau message de contact</h2>
+                            <p><strong>Nom:</strong> {$request->name}</p>
+                            <p><strong>Email:</strong> {$request->email}</p>
+                            <p><strong>Sujet:</strong> {$request->subject}</p>
+                            <p><strong>Message:</strong></p>
+                            <div style='background: #f9f9f9; padding: 15px; border-radius: 4px;'>
+                                " . nl2br(e($request->message)) . "
+                            </div>
+                        </div>
+                    ");
+        });
+
+        return back()->with('success', 'Votre Excellence, votre demande a bien été transmise. Nos experts vous contacteront sous peu.');
     }
 }

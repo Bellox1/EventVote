@@ -1,0 +1,231 @@
+@extends('layouts.app')
+
+@section('title', 'Tarification & Transparence')
+
+@section('content')
+<style>
+    @media (max-width: 768px) {
+        .pricing-hero { margin-bottom: 40px !important; }
+        .pricing-hero h1 { font-size: 2.2rem !important; }
+        .pricing-grid { grid-template-columns: 1fr !important; gap: 30px !important; }
+        .pricing-card { padding: 30px 20px !important; text-align: center; }
+        .pricing-card ul { display: inline-block; text-align: left; }
+        .simulation-section { padding: 40px 15px !important; margin-top: 60px !important; }
+        .simulation-section h2 { font-size: 2rem !important; margin-bottom: 30px !important; }
+        .simulation-card { padding: 25px 15px !important; text-align: center; }
+        .simulation-card div[style*="text-align: right"] { text-align: center !important; }
+        .contact-section { gap: 50px !important; margin-top: 60px !important; padding-top: 60px !important; text-align: center !important; }
+        .contact-section h2 { font-size: 1.8rem !important; }
+        .contact-section p { margin-left: auto; margin-right: auto; }
+        .contact-info-item { flex-direction: column !important; text-align: center !important; }
+        .contact-form-container { padding: 30px 20px !important; }
+    }
+</style>
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 15px; overflow-x: hidden;">
+    
+    <!-- Hero Section -->
+    <div class="pricing-hero" style="text-align: center; margin-bottom: 100px;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; display: block; margin-bottom: 20px;">Transparence Totale</span>
+        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 8vw, 4.5rem); color: var(--primary); font-weight: 300; margin: 0; line-height: 1.1;">
+            Nos <span style="font-style: italic;">Conditions.</span>
+        </h1>
+        <div class="ornament" style="margin: 30px auto;"></div>
+        <p style="color: var(--text-dim); font-size: 1.2rem; max-width: 700px; margin: 0 auto; line-height: 1.8; font-family: 'Cormorant Garamond', serif; font-style: italic;">
+            Nous prélevons une commission minimale pour assurer l'intégrité technique, la sécurité des votes et la maintenance de la plateforme de prestige.
+        </p>
+    </div>
+
+    <div class="pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 60px; align-items: start;">
+        
+        <!-- Commission Plateforme -->
+        <div class="pricing-card" style="background: white; padding: 50px; border-radius: 4px; box-shadow: var(--shadow-soft); border-top: 5px solid var(--accent); position: relative;">
+            <div style="position: absolute; top: -20px; right: 30px; background: var(--primary); color: white; padding: 10px 20px; font-weight: 800; font-size: 1.5rem; font-family: 'Cormorant Garamond', serif;">2%</div>
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--primary); margin-bottom: 25px;">Commission Plateforme</h2>
+            <p style="color: var(--text-dim); line-height: 1.7; margin-bottom: 30px;">
+                Une commission unique de <strong>2%</strong> est appliquée sur le montant total des votes récoltés par chaque session. Ce montant couvre :
+            </p>
+            <ul style="list-style: none; padding: 0; color: var(--primary); font-weight: 600; font-size: 0.9rem;">
+                <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--accent);">✦</span> Hébergement de Haute Disponibilité
+                </li>
+                <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--accent);">✦</span> Sécurisation Anti-Fraude des Scrutins
+                </li>
+                <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--accent);">✦</span> Support Technique 24/7
+                </li>
+            </ul>
+        </div>
+
+        <!-- Frais Agrégateur -->
+        <div class="pricing-card" style="background: var(--primary); padding: 50px; border-radius: 4px; box-shadow: var(--shadow-soft); color: white;">
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--accent); margin-bottom: 25px;">Frais de l'Agrégateur</h2>
+            <p style="color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 30px;">
+                Ces frais sont prélevés par l'agrégateur de paiement pour le traitement des transactions (Mobile Money, Cartes).
+            </p>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead style="border-bottom: 1px solid rgba(212, 174, 109, 0.3);">
+                    <tr>
+                        <th style="padding: 10px 0; text-align: left; color: var(--accent); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.1em;">Tranche de Montant</th>
+                        <th style="padding: 10px 0; text-align: right; color: var(--accent); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.1em;">Commission Fixe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px 0;">0 – 10 000 XOF</td>
+                        <td style="padding: 15px 0; text-align: right; font-weight: 700;">150 XOF</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px 0;">10 001 – 50 000 XOF</td>
+                        <td style="padding: 15px 0; text-align: right; font-weight: 700;">300 XOF</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px 0;">50 001 – 150 000 XOF</td>
+                        <td style="padding: 15px 0; text-align: right; font-weight: 700;">800 XOF</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 15px 0;">150 001 – 500 000 XOF</td>
+                        <td style="padding: 15px 0; text-align: right; font-weight: 700;">2 000 XOF</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 15px 0;">500 001 XOF et plus</td>
+                        <td style="padding: 15px 0; text-align: right; font-weight: 700;">2 500 XOF</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Simulation Section (Luxury Redesign) -->
+    <div class="simulation-section" style="margin-top: 120px; padding: 100px 40px; background: var(--primary); border-radius: 4px; position: relative; overflow: hidden; box-shadow: var(--shadow-hard);">
+        <!-- Background decorative elements -->
+        <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; border: 1px solid rgba(212, 174, 109, 0.1); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -50px; left: -50px; width: 200px; height: 200px; border: 1px solid rgba(212, 174, 109, 0.1); border-radius: 50%;"></div>
+
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: var(--accent); margin-bottom: 60px; text-align: center; font-weight: 300;">
+            Simulations de <span style="font-style: italic;">Transparence.</span>
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; position: relative; z-index: 2;">
+            
+            <!-- Exemple 1 (Premium Card) -->
+            <div class="simulation-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(212, 174, 109, 0.3); padding: 40px; border-radius: 2px; backdrop-filter: blur(10px); transition: transform 0.4s;">
+                <div style="font-size: 0.65rem; color: var(--accent); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; font-weight: 700;">Scrutin Modèle I</div>
+                
+                <div style="margin-bottom: 40px;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;">Total des suffrages</div>
+                    <div style="font-size: 2.2rem; font-family: 'Cormorant Garamond', serif; color: white;">100 000 <span style="font-size: 0.8rem; color: var(--accent);">XOF</span></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(212, 174, 109, 0.15); margin-bottom: 30px;">
+                    <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Frais de Service (2%)</div>
+                    <div style="font-size: 1.1rem; color: var(--accent); font-weight: 600;">- 2 000 XOF</div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div style="font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;">Reversement Net Final</div>
+                    <div style="font-size: 2.8rem; font-family: 'Cormorant Garamond', serif; color: white; line-height: 1;">98 000 <span style="font-size: 1rem;">XOF</span></div>
+                </div>
+                
+                <div style="margin-top: 35px; font-size: 0.6rem; color: rgba(255,255,255,0.4); text-align: left; font-style: italic; line-height: 1.6;">
+                    * Les frais d'intermédiation financière (agrégateur) sont intégralement absorbés par EventVote sur sa commission.
+                </div>
+            </div>
+
+            <!-- Exemple 2 (Premium Card) -->
+            <div class="simulation-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(212, 174, 109, 0.3); padding: 40px; border-radius: 2px; backdrop-filter: blur(10px); transition: transform 0.4s;">
+                <div style="font-size: 0.65rem; color: var(--accent); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; font-weight: 700;">Scrutin Modèle II</div>
+                
+                <div style="margin-bottom: 40px;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;">Total des suffrages</div>
+                    <div style="font-size: 2.2rem; font-family: 'Cormorant Garamond', serif; color: white;">550 000 <span style="font-size: 0.8rem; color: var(--accent);">XOF</span></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(212, 174, 109, 0.15); margin-bottom: 30px;">
+                    <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">Frais de Service (2%)</div>
+                    <div style="font-size: 1.1rem; color: var(--accent); font-weight: 600;">- 11 000 XOF</div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div style="font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;">Reversement Net Final</div>
+                    <div style="font-size: 2.8rem; font-family: 'Cormorant Garamond', serif; color: white; line-height: 1;">539 000 <span style="font-size: 1rem;">XOF</span></div>
+                </div>
+                
+                <div style="margin-top: 35px; font-size: 0.6rem; color: rgba(255,255,255,0.4); text-align: left; font-style: italic; line-height: 1.6;">
+                    * Les frais d'intermédiation financière (agrégateur) sont intégralement absorbés par EventVote sur sa commission.
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 80px; text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; opacity: 0.8;">
+                Vous recevez 98% • Sans Frais Cachés.
+            </p>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div id="contact" class="contact-section" style="margin-top: 120px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 80px; align-items: start; border-top: 1px solid var(--border); padding-top: 100px; margin-bottom: 50px;">
+        
+        <!-- Contact Info -->
+        <div style="text-align: left;">
+            <span style="font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 700;">Besoin d'accompagnement ?</span>
+            <h2 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 5vw, 3.5rem); color: var(--primary); margin: 20px 0; line-height: 1.1;">Contactez <span style="font-style: italic;">Nos Experts.</span></h2>
+            <p style="color: var(--text-dim); line-height: 1.8; margin-bottom: 40px; font-size: 1.1rem; font-family: 'Cormorant Garamond', serif; font-style: italic;">
+                Que vous soyez un organisateur d'événements prestigieux ou une institution, notre équipe est à votre entière disposition pour personnaliser votre expérience.
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="contact-info-item" style="display: flex; align-items: center; gap: 20px;">
+                    <div style="width: 50px; height: 50px; background: white; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); box-shadow: var(--shadow-soft);">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.2em; font-weight: 700; margin-bottom: 4px;">Demandes Générales</div>
+                        <div style="font-weight: 500; color: var(--primary); font-size: 1.1rem;">{{ env('SUPER_ADMIN_EMAIL', 'contact@eventvote.com') }}</div>
+                    </div>
+                </div>
+                <div class="contact-info-item" style="display: flex; align-items: center; gap: 20px;">
+                    <div style="width: 50px; height: 50px; background: white; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); box-shadow: var(--shadow-soft);">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.2em; font-weight: 700; margin-bottom: 4px;">Assistance Conciergerie</div>
+                        <div style="font-weight: 500; color: var(--primary); font-size: 1.1rem;">{{ env('SUPER_ADMIN_NUMBER', '+229 XX XX XX XX') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="contact-form-container" style="background: white; padding: clamp(25px, 5vw, 60px); border-radius: 4px; box-shadow: var(--shadow-hard); border: 1px solid var(--border);">
+            <form id="contactForm" method="POST" action="{{ route('contact.send') }}">
+                @csrf
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 12px; font-weight: 700;">Nom Complet</label>
+                    <input type="text" name="name" required placeholder="Votre nom&prenom" style="width: 100%; padding: 18px; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; background: #fafafa; outline: none; transition: border-color 0.3s; font-size: 1rem;" onfocus="this.style.borderBottomColor='var(--accent)'; this.style.background='white'" onblur="this.style.borderBottomColor='var(--border)'; this.style.background='#fafafa'">
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 12px; font-weight: 700;">Email Professionnel</label>
+                    <input type="email" name="email" required placeholder="nom@institution.com" style="width: 100%; padding: 18px; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; background: #fafafa; outline: none; transition: border-color 0.3s; font-size: 1rem;" onfocus="this.style.borderBottomColor='var(--accent)'; this.style.background='white'" onblur="this.style.borderBottomColor='var(--border)'; this.style.background='#fafafa'">
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 12px; font-weight: 700;">Sujet de la demande</label>
+                    <input type="text" name="subject" required placeholder="Détail sur tarification,Accompagnement, Devis personnalisé,..." style="width: 100%; padding: 18px; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; background: #fafafa; outline: none; transition: border-color 0.3s; font-size: 1rem;" onfocus="this.style.borderBottomColor='var(--accent)'; this.style.background='white'" onblur="this.style.borderBottomColor='var(--border)'; this.style.background='#fafafa'">
+                </div>
+
+                <div style="margin-bottom: 40px;">
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); margin-bottom: 12px; font-weight: 700;">Votre Message</label>
+                    <textarea name="message" required rows="4" placeholder="Décrivez votre vision ou vos besoins spécifiques..." style="width: 100%; padding: 18px; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; background: #fafafa; outline: none; transition: border-color 0.3s; resize: none; font-size: 1rem;" onfocus="this.style.borderBottomColor='var(--accent)'; this.style.background='white'" onblur="this.style.borderBottomColor='var(--border)'; this.style.background='#fafafa'"></textarea>
+                </div>
+
+                <button type="submit" style="width: 100%; background: var(--primary); color: white; padding: 22px; border: none; border-radius: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; cursor: pointer; transition: all 0.4s; font-size: 0.85rem;" onmouseover="this.style.background='var(--primary-light)'; this.style.letterSpacing='0.4em'; this.style.boxShadow='0 10px 30px rgba(0,50,41,0.2)'" onmouseout="this.style.background='var(--primary)'; this.style.letterSpacing='0.3em'; this.style.boxShadow='none'">Soumettre ma Demande</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+@endsection

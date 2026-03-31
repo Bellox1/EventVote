@@ -25,6 +25,17 @@
     <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 8vw, 4rem); color: var(--primary); margin-bottom: 10px; line-height: 1.1;">Bonjour, {{ Auth::user()->name }}</div>
     <div class="ornament" style="margin: 0 auto 20px;"></div>
     <p style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; font-size: clamp(0.6rem, 3vw, 0.8rem);">Gestion de vos sessions & participations</p>
+
+    <!-- Creator Financial Stats (Prominent Display) -->
+    <div style="max-width: 800px; margin: 30px auto 60px; background: white; padding: 40px; border-radius: 4px; box-shadow: var(--shadow-soft); border: 1px solid var(--border); text-align: center; border-top: 4px solid var(--primary);">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 15px;">Revenu Total Accumulé</div>
+        <div style="font-size: clamp(2.5rem, 8vw, 4rem); font-family: 'Cormorant Garamond', serif; color: var(--primary); font-weight: 700; line-height: 1;">
+            {{ number_format($totalCreatorNet ?? 0, 0, ',', ' ') }} <span style="font-size: 1rem; color: var(--accent); vertical-align: middle; margin-left: 10px;">XOF</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.2em; margin-top: 15px;">
+            (Net après 2% de commission)
+        </div>
+    </div>
 </div>
 
 <div style="display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 80px; padding: 0 20px;">
@@ -403,11 +414,15 @@
                             @endphp
                             <span style="font-size: 0.65rem; background: {{ $badge[0] }}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">{{ $badge[1] }}</span>
                         </div>
-                        <div style="display: flex; gap: 20px; margin-top: 20px;">
-                            <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">PRIX : <span style="color: var(--primary);">{{ $camp->vote_price == 0 ? 'GRATUIT' : number_format($camp->vote_price, 0, ',', ' ') . ' FCFA' }}</span></span>
-                                    @if($camp->bank_account)
-                                <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">COMPTE : <span style="color: var(--primary);">{{ $camp->bank_account }}</span></span>
-                            @endif
+                        <div style="display: flex; gap: 20px; margin-top: 25px; flex-wrap: wrap; background: #f9f6f0; padding: 15px; border-radius: 4px;">
+                            <div style="flex:1;">
+                                <div style="font-size: 0.55rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Prix du vote</div>
+                                <div style="font-weight: 700; color: var(--primary);">{{ $camp->vote_price == 0 ? 'GRATUIT' : number_format($camp->vote_price, 0, ',', ' ') . ' FCFA' }}</div>
+                            </div>
+                            <div style="flex:1; border-left: 1px solid var(--border); padding-left: 20px;">
+                                <div style="font-size: 0.55rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Revenu Session (Net)</div>
+                                <div style="font-weight: 800; color: #10b981;">{{ number_format($camp->creator_net ?? 0, 0, ',', ' ') }} FCFA</div>
+                            </div>
                         </div>
                         @if($camp->status === 'rejected' && $camp->rejection_reason)
                             <div style="background-color: #fef2f2; padding: 15px; border-left: 3px solid #ef4444; margin-top: 20px;">

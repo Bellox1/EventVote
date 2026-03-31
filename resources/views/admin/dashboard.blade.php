@@ -42,20 +42,32 @@
             
             <div class="stats-grid">
                 <div style="background: white; padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid var(--text-dim);">
-                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Total Demandes</div>
-                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $totalDemandes }}</div>
+                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Flux Global</div>
+                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ number_format($globalStats['total_revenue'] ?? 0, 0, ',', ' ') }} <span style="font-size: 0.7rem;">XOF</span></div>
                 </div>
-                <div style="background: white; padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid #10b981;">
-                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Acceptées</div>
-                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $acceptedDemandes }}</div>
+                <div style="background: white; padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid var(--accent);">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Réservé (2%)</div>
+                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ number_format($globalStats['total_reserved'] ?? 0, 0, ',', ' ') }} <span style="font-size: 0.7rem;">XOF</span></div>
                 </div>
                 <div style="background: white; padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid #ef4444;">
-                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Rejetées</div>
-                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $rejectedDemandes }}</div>
+                    <div style="font-size: 0.6rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Frais Agrégateur</div>
+                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: #ef4444;">{{ number_format($globalStats['total_aggregator'] ?? 0, 0, ',', ' ') }} <span style="font-size: 0.7rem;">XOF</span></div>
                 </div>
-                <div style="background: var(--primary); padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid var(--accent);">
-                    <div style="font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Revenus Plateforme</div>
-                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: white;">{{ number_format($totalRevenue ?? 0, 0, ',', ' ') }} <span style="font-size: 0.7rem; color: var(--accent);">XOF</span></div>
+                <div style="background: var(--primary); padding: 20px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid #10b981;">
+                    <div style="font-size: 0.6rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Revenu Net Admin</div>
+                    <div style="font-size: 1.8rem; font-family: 'Cormorant Garamond', serif; color: white;">{{ number_format($globalStats['total_net_admin'] ?? 0, 0, ',', ' ') }} <span style="font-size: 0.7rem; color: var(--accent);">XOF</span></div>
+                </div>
+            </div>
+
+            <!-- Aggregator Fee Reference (For Admin) -->
+            <div style="margin-top: 40px; background: #f9f6f0; padding: 25px; border-radius: 4px; border: 1px dashed var(--accent); display: inline-block;">
+                <div style="font-size: 0.6rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Barème Frais Agrégateur (Prélevé sur les 2%)</div>
+                <div style="font-size: 0.75rem; color: var(--primary); display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; font-weight: 600;">
+                    <span>0 – 10k : <strong style="color:var(--accent);">150 XOF</strong></span>
+                    <span>10k – 50k : <strong style="color:var(--accent);">300 XOF</strong></span>
+                    <span>50k – 150k : <strong style="color:var(--accent);">800 XOF</strong></span>
+                    <span>150k – 500k : <strong style="color:var(--accent);">2000 XOF</strong></span>
+                    <span>500k+ : <strong style="color:var(--accent);">2500 XOF</strong></span>
                 </div>
             </div>
         </div>
@@ -330,10 +342,11 @@
                     <thead style="background: var(--primary); color: white; font-size: 0.65rem; text-transform: uppercase;">
                         <tr>
                             <th style="padding: 15px 25px;">Scrutin</th>
-                            <th style="padding: 15px 25px; text-align: center;">Vues</th>
-                            <th style="padding: 15px 25px; text-align: center;">Voix</th>
-                            <th style="padding: 15px 25px; text-align: center;">Revenus</th>
-                            <th style="padding: 15px 25px; text-align: right;">Conv.</th>
+                            <th style="padding: 15px 25px; text-align: center;">Total</th>
+                            <th style="padding: 15px 25px; text-align: center;">Réservé (2%)</th>
+                            <th style="padding: 15px 25px; text-align: center;">Agrégateur</th>
+                            <th style="padding: 15px 25px; text-align: center;">Bénéfice Net</th>
+                            <th style="padding: 15px 25px; text-align: right;">Net Créateur</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -343,11 +356,12 @@
                                     <div style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">{{ $s->name }}</div>
                                     <div style="font-size: 0.6rem; color: var(--accent);">Hôte: {{ $s->creator->name ?? '---' }}</div>
                                 </td>
-                                <td style="padding: 15px 25px; text-align: center;">{{ $s->unique_views_count }}</td>
-                                <td style="padding: 15px 25px; text-align: center; font-weight: 700;">{{ $s->votes_sum_count ?? 0 }}</td>
-                                <td style="padding: 15px 25px; text-align: center; font-weight: 700; color: #10b981;">{{ number_format($s->revenue ?? 0, 0, ',', ' ') }}</td>
-                                <td style="padding: 15px 25px; text-align: right; color: var(--accent); font-weight: 700; font-size: 0.8rem;">
-                                    {{ $s->unique_views_count > 0 ? round(($s->votes_count / $s->unique_views_count) * 100, 1) : 0 }}%
+                                <td style="padding: 15px 25px; text-align: center; font-weight: 700;">{{ number_format($s->total_amount ?? 0, 0, ',', ' ') }}</td>
+                                <td style="padding: 15px 25px; text-align: center; color: var(--accent);">{{ number_format($s->site_fee, 0, ',', ' ') }}</td>
+                                <td style="padding: 15px 25px; text-align: center; color: #ef4444;">{{ number_format($s->aggregator_fee, 0, ',', ' ') }}</td>
+                                <td style="padding: 15px 25px; text-align: center; font-weight: 700; color: #10b981;">{{ number_format($s->net_admin, 0, ',', ' ') }}</td>
+                                <td style="padding: 15px 25px; text-align: right; color: var(--primary); font-weight: 700;">
+                                    {{ number_format($s->creator_net, 0, ',', ' ') }}
                                 </td>
                             </tr>
                         @endforeach

@@ -525,6 +525,7 @@
             @endif
 
             <a href="{{ route('help') }}" class="drawer-link {{ request()->routeIs('help') ? 'active' : '' }}" style="font-size: 1.8rem;">Aide & Infos</a>
+            <a href="{{ route('pricing') }}" class="drawer-link {{ request()->routeIs('pricing') ? 'active' : '' }}" style="font-size: 1.8rem;">Tarification</a>
 
             <div style="width: 30px; height: 1px; background: rgba(212, 174, 109, 0.3); margin: 15px 0 30px;"></div>
 
@@ -723,6 +724,8 @@
                 <a href="{{ route('help') }}" style="font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); text-transform: uppercase; transition: color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Aide</a>
                 <span style="color: rgba(255,255,255,0.3);">|</span>
                 <a href="{{ route('privacy') }}" style="font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); text-transform: uppercase; transition: color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Confidentialité</a>
+                <span style="color: rgba(255,255,255,0.3);">|</span>
+                <a href="{{ route('pricing') }}" style="font-size: 0.8rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); text-transform: uppercase; transition: color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Tarification</a>
             </div>
 
             <div style="width: 40px; height: 1px; background: rgba(255,255,255,0.1); margin: 30px 0;"></div>
