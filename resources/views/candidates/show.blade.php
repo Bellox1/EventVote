@@ -39,7 +39,9 @@
                 { type: 'video', path: '{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}' }
             @endif
         ],
-        interval: null,
+        slideProgress: 0,
+        slideInterval: null,
+        autoPaused: false,
         next() {
             if (this.items.length <= 1) return;
             this.activeIdx = (this.activeIdx + 1) % this.items.length;
@@ -51,24 +53,37 @@
             this.reschedule();
         },
         reschedule() {
-            clearTimeout(this.interval);
+            clearInterval(this.slideInterval);
+            this.slideProgress = 0;
             if (!this.showGallery || this.items.length <= 1) return;
-            
             const current = this.items[this.activeIdx];
             if (current.type === 'image') {
-                this.interval = setTimeout(() => this.next(), 6000);
+                const totalTime = 5000;
+                const tick = 50;
+                this.slideInterval = setInterval(() => {
+                    if(!this.autoPaused) {
+                        this.slideProgress += (tick / totalTime) * 100;
+                        if(this.slideProgress >= 100) {
+                            this.next();
+                        }
+                    }
+                }, tick);
             }
+        },
+        setPause(val) {
+            this.autoPaused = val;
         },
         open() {
             this.showGallery = true;
             this.activeIdx = 0;
+            this.autoPaused = false;
             document.body.style.overflow = 'hidden';
             this.reschedule();
         },
         close() {
             this.showGallery = false;
             document.body.style.overflow = '';
-            clearTimeout(this.interval);
+            clearInterval(this.slideInterval);
         }
     }" @keydown.escape.window="close()">
 
@@ -86,8 +101,9 @@
                     .spotlight-btn-group { flex-direction: column !important; align-items: stretch !important; gap: 20px !important; }
                     .spotlight-btn { padding: 18px 30px !important; width: 100% !important; }
                     .quote-box { padding: 60px 30px !important; font-size: 1.4rem !important; }
-                    .gal-arrow { width: 40px !important; height: 40px !important; left: 10px !important; }
-                    .gal-arrow-next { right: 10px !important; }
+                    .gal-arrow { width: 40px !important; height: 40px !important; }
+                    .gal-arrow-prev { left: 10px !important; }
+                    .gal-arrow-next { right: 10px !important; left: auto !important; }
                 }
             </style>
             <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; opacity: 0.05;">
@@ -164,14 +180,21 @@
         </div>
 
         <!-- 3. FULLSCREEN GALLERY OVERLAY -->
-        <div x-show="showGallery" @mousemove="wake()" @click="wake()" style="position: fixed; inset: 0; z-index: 99999;" x-transition.opacity.duration.300ms>
+        <div x-show="showGallery" @mousemove="wake()" @click="wake()" style="display: none; position: fixed; inset: 0; z-index: 99999;" x-transition.opacity.duration.300ms>
             <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column;">
+                
+                <!-- Barre de progression auto (Type Story) -->
+                <div x-show="items.length > 1 && items[activeIdx] && items[activeIdx].type === 'image'" style="position: absolute; top: env(safe-area-inset-top, 20px); left: 20px; right: 20px; height: 4px; background: rgba(255,255,255,0.3); z-index: 100000; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                    <div :style="'width: ' + slideProgress + '%;'" style="height: 100%; background: #d4ae6d; transition: width 0.05s linear;"></div>
+                </div>
+
                 <button x-show="globalUi" x-transition.opacity @click="close()" style="position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; z-index: 100; cursor: pointer;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
 
                 <!-- Media Showcase -->
-                <div style="flex: 1; position: relative; width: 100%; display: flex; align-items: center; justify-content: center;">
+                <div @mouseenter="setPause(true)" @mouseleave="setPause(false)" @touchstart="setPause(true)" @touchend="setPause(false)"
+                     style="flex: 1; position: relative; width: 100%; display: flex; align-items: center; justify-content: center;">
                     <template x-if="items[activeIdx] && items[activeIdx].type === 'image'">
                         <img :src="items[activeIdx].path" style="max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 4px;">
                     </template>
@@ -186,7 +209,7 @@
                     </template>
 
                     <!-- Nav Arrows -->
-                    <button @click="prev()" x-show="items.length > 1 && globalUi" x-transition.opacity class="gal-arrow" style="position: absolute; left: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
+                    <button @click="prev()" x-show="items.length > 1 && globalUi" x-transition.opacity class="gal-arrow gal-arrow-prev" style="position: absolute; left: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     <button @click="next()" x-show="items.length > 1 && globalUi" x-transition.opacity class="gal-arrow gal-arrow-next" style="position: absolute; right: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">

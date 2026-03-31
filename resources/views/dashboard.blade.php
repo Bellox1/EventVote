@@ -98,7 +98,9 @@
                         
                         <div style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
+                                @if(Auth::id() === $camp->user_id || Auth::user()->isAdmin())
                                 <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em;">RÉFÉRENCE #{{ $camp->code }}</div>
+                                @endif
                                 <h3 style="font-size: clamp(1.4rem, 6vw, 1.8rem); color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; line-height: 1.2;">{{ $camp->name }}</h3>
                                 <div style="margin-top: 15px;">
                                     @php
@@ -384,7 +386,9 @@
                 
                 <div style="padding: 40px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
+                        @if(Auth::id() === $camp->user_id || Auth::user()->isAdmin())
                         <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em;">RÉFÉRENCE #{{ $camp->code }}</div>
+                        @endif
                         <h3 style="font-size: clamp(1.5rem, 6vw, 2.2rem); color: var(--primary); font-family: 'Cormorant Garamond', serif; margin-top: 10px; margin-bottom: 15px; line-height: 1.1;">{{ $camp->name }}</h3>
                         <div>
                             @php
