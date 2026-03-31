@@ -3,6 +3,19 @@
 @section('title', 'Lancer un Scrutin d\'Exception')
 
 @section('content')
+<style>
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    input[type="datetime-local"] { color: var(--primary) !important; outline: none; }
+    
+    @media (max-width: 768px) {
+        .form-grid { grid-template-columns: 1fr !important; gap: 25px !important; }
+        .form-grid > div { grid-column: span 1 !important; }
+        .form-actions { flex-direction: column !important; }
+        .form-actions > a, .form-actions > button { width: 100% !important; margin: 0 !important; }
+        input[type="datetime-local"] { width: 100% !important; display: flex !important; align-items: center; justify-content: center; -webkit-appearance: none; appearance: none; padding: 0 10px !important; font-size: 0.9rem !important; height: 60px !important; }
+    }
+    input { box-sizing: border-box; }
+</style>
 <div style="max-width: 900px; margin: 60px auto; padding: 0 20px;">
     <div class="card" style="border-bottom: 6px solid var(--accent); padding: 80px 60px; box-shadow: var(--shadow-hard);">
         
@@ -51,7 +64,7 @@
             <div style="display: flex; flex-direction: column; gap: 35px;">
                 <div style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Finance & Monétisation</div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div class="form-grid">
                     <div>
                         <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Prix d'un Vote (En Devise)</label>
                         <input type="number" name="vote_price" value="{{ old('vote_price', 100) }}" required min="0" placeholder="Ex: 100"
@@ -69,8 +82,8 @@
             </div>
 
             <!-- Section 3: Programmation Temporelle (Optionnelle) -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                <div style="grid-column: span 2; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Temporalité (Optionnel)</div>
+            <div class="form-grid">
+                <div style="grid-column: 1 / -1; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Temporalité (Optionnel)</div>
                 
                 <div>
                     <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Ouverture des Votes</label>
@@ -86,8 +99,8 @@
             </div>
 
             <!-- Section 4: Médias -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                <div style="grid-column: span 2; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Identité Visuelle</div>
+            <div class="form-grid">
+                <div style="grid-column: 1 / -1; font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">Identité Visuelle</div>
                 
                 <div>
                     <label style="display: block; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 12px; color: var(--primary); letter-spacing: 0.15em;">Affiche (Image)</label>
@@ -108,9 +121,9 @@
                 </p>
             </div>
 
-            <div style="display: flex; gap: 20px; margin-top: 30px;">
-                <a href="{{ route('dashboard') }}" class="btn btn-outline" style="flex: 1; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">ANNULER</a>
-                <button type="submit" class="btn btn-primary" style="flex: 2; height: 75px; font-size: 1rem; border-radius: 4px;">SOUUMETTRE POUR APPROBATION</button>
+            <div class="form-actions" style="display: flex; gap: 20px; margin-top: 30px;">
+                <a href="{{ route('dashboard') }}" class="btn btn-outline" style="flex: 1; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid var(--primary); color: var(--primary); text-decoration: none; border-radius: 4px; font-weight: 700; letter-spacing: 0.1em;">ANNULER</a>
+                <button type="submit" style="flex: 2; height: 75px; font-size: 1rem; border-radius: 4px; background: var(--primary); color: white; border: none; font-weight: 700; letter-spacing: 0.1em; cursor: pointer;">SOUMETTRE POUR APPROBATION</button>
             </div>
         </form>
     </div>
