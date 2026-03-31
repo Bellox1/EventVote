@@ -717,6 +717,13 @@
                 style="font-size: 0.6rem; font-weight: 600; letter-spacing: 0.4em; text-transform: uppercase; opacity: 0.5; text-align: center;">
                 © 2026 {{ config('app.name') }} • TOUS DROITS RÉSERVÉS.
             </div>
+
+            <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 0.65rem; font-weight: 500; letter-spacing: 0.1em; margin-right: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Propulsé par</span>
+                <a href="https://bellox1.github.io/bellox1" target="_blank" rel="noopener noreferrer" style="transition: opacity 0.3s; opacity: 0.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                    <img src="{{ asset('storage/by.png') }}" alt="Propulsé par" style="height: 20px; object-fit: contain; filter: brightness(0) invert(1);">
+                </a>
+            </div>
         </div>
     </footer>
 

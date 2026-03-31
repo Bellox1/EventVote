@@ -1,5 +1,49 @@
 @extends('layouts.app')
 
+@section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        .candidate-slide { 
+            position: relative; 
+            width: 350px !important; 
+            display: flex; 
+            flex-direction: column; 
+            cursor: pointer; 
+            opacity: 0.4;
+            transform: scale(0.85);
+            filter: grayscale(60%);
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        }
+        
+        .swiper-slide-prev, .swiper-slide-next {
+            opacity: 0.8;
+            transform: scale(0.95);
+            filter: grayscale(20%);
+        }
+
+        .swiper-slide-active {
+            opacity: 1;
+            transform: translateY(-30px) scale(1.05);
+            filter: grayscale(0%);
+            z-index: 10;
+        }
+
+        .candidate-slide:hover .candidate-image-wrapper { transform: scale(1.03); }
+        .candidate-image-wrapper { position: relative; width: 100%; aspect-ratio: 4/5; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .candidate-image-wrapper img, .candidate-image-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .candidate-info { text-align: center; margin-top: 25px; transition: all 0.5s; opacity: 0; }
+        .swiper-slide-prev .candidate-info, .swiper-slide-next .candidate-info { opacity: 0.5; }
+        .swiper-slide-active .candidate-info { opacity: 1; transform: translateY(10px); }
+        .swiper-slide-active .candidate-info h3 { color: var(--accent) !important; }
+
+        .full-width-section { width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; }
+        @media(max-width: 768px){
+            .candidate-slide { width: 280px !important; }
+        }
+    </style>
+@endsection
+
 @section('content')
     @php
         $totalVotes = $campaign->votes()->count();
@@ -157,6 +201,72 @@
                     <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; margin-bottom: 10px;">Status</div>
                     <div style="font-size: 1rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 15px;">ACTIF</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Swiper Carousel Section -->
+    <div class="full-width-section" style="padding: 100px 0; background: #051A16; overflow: hidden; margin-bottom: 100px;">
+        <!-- Subtle background pattern -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(212,174,109,0.05) 0%, transparent 70%); pointer-events: none;"></div>
+
+        <div style="text-align: center; margin-bottom: 80px; position: relative; z-index: 10;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; display: block; margin-bottom: 20px;">Découvrez nos</span>
+            <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); color: white; font-family: 'Cormorant Garamond', serif; margin: 0; line-height: 1.1;">Candidat(e)s en <span style="font-style: italic;">Lice.</span></h2>
+            <div style="width: 40px; height: 1px; background: var(--accent); margin: 30px auto 0;"></div>
+        </div>
+
+        <div class="swiper candidate-swiper" style="padding: 60px 0 60px;">
+            <div class="swiper-wrapper">
+                @php
+                    $rankedCandidates = $candidates->sortByDesc('votes_count')->values();
+                @endphp
+                <!-- Répétition manuelle des slides pour garantir la boucle infinie sans espace vide même avec peu de candidats -->
+                @for ($i = 0; $i < 6; $i++)
+                    @foreach($candidates->sortBy('sort_order') as $candidate)
+                        @php
+                            $rankIndex = $rankedCandidates->search(function($c) use ($candidate) { return $c->id === $candidate->id; });
+                        @endphp
+                        <div class="swiper-slide candidate-slide">
+                            <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; text-decoration: none;">
+                                
+                                <!-- Rank Badge (Outside and Above Image) -->
+                                <div style="height: 50px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 15px;">
+                                    @if ($rankIndex !== false && $rankIndex < 3)
+                                        <span style="color: var(--accent); font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; font-style: italic; letter-spacing: 0.05em; text-shadow: 0 4px 15px rgba(212,174,109,0.3);">
+                                            @if($rankIndex === 0) 👑 Leader @elseif($rankIndex === 1) 2ème @else 3ème @endif
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <!-- Image part -->
+                                <div class="candidate-image-wrapper">
+                                    @if ($candidate->image_path)
+                                        <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" alt="{{ $candidate->name }}">
+                                    @elseif($candidate->video_path)
+                                        <video muted loop playsinline autoplay>
+                                            <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
+                                        </video>
+                                    @else
+                                        <div style="width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-family: 'Cormorant Garamond', serif; font-size: 4rem; color: white; opacity: 0.1;">#{{ $candidate->sort_order }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Info part (Below Image) -->
+                                <div class="candidate-info">
+                                    <h3 style="color: white; font-size: 2rem; margin: 0 0 10px; font-family: 'Cormorant Garamond', serif; font-weight: 400; line-height: 1.1;">{{ $candidate->name }}</h3>
+                                    <div style="display: flex; gap: 15px; align-items: center; justify-content: center;">
+                                        <span style="color: var(--accent); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em;">n°{{ $candidate->sort_order }}</span>
+                                        <div style="width: 4px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+                                        <span style="color: white; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8;">{{ $candidate->votes_count }} voix</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                @endfor
             </div>
         </div>
     </div>
@@ -355,5 +465,26 @@
                 }
             });
         }
+    </script>
+@endsection
+
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new Swiper('.candidate-swiper', {
+                slidesPerView: 'auto',
+                spaceBetween: 30,
+                centeredSlides: true,
+                loop: true,
+                speed: 1000,
+                autoplay: {
+                    delay: 2000,
+                    disableOnInteraction: false,
+                },
+                grabCursor: true,
+                effect: 'slide'
+            });
+        });
     </script>
 @endsection
