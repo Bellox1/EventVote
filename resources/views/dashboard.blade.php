@@ -16,6 +16,9 @@
     .tab-btn { background: none; border: none; padding-bottom: 10px; color: var(--text-dim); cursor: pointer; font-weight: 700; text-transform: uppercase; transition: 0.3s; border-bottom: 2px solid transparent; letter-spacing: 0.1em; }
     .tab-btn.active-tab { color: var(--primary) !important; border-bottom: 2px solid var(--primary) !important; }
     [x-cloak] { display: none !important; }
+    .live-blink { animation: blink-animation 1.5s steps(5, start) infinite; -webkit-animation: blink-animation 1.5s steps(5, start) infinite; }
+    @keyframes blink-animation { to { visibility: hidden; } }
+    @-webkit-keyframes blink-animation { to { visibility: hidden; } }
 </style>
 
 <div style="text-align: center; margin-bottom: 80px;">
@@ -125,9 +128,216 @@
     @endif
 
     {{-- 2. SECTION : SESSIONS ACTIVES / PARTICIPATIONS --}}
-    <div x-show="tab === 'active'" x-transition x-cloak>
+    <div x-show="tab === 'active'" x-transition x-cloak x-data="{
+        campaigns: {{ $myActive->map(fn($c) => ['name' => $c->name, 'slug' => $c->slug])->values() }},
+        selectedSlug: '{{ $myActive->first() ? $myActive->first()->slug : '' }}',
+        stats: { labels: [], datasets: [], total_amount: 0, total_votes: 0, recent_votes: [], top_3: [] },
+        chart: null,
+        loading: false,
         
-        @php $displayCampaigns = $myActive->isNotEmpty() ? $myActive : $participations; @endphp
+        async fetchStats() {
+            if (!this.selectedSlug) return;
+            this.loading = true;
+            try {
+                const response = await fetch(`/api/campaigns/${this.selectedSlug}/stats`);
+                this.stats = await response.json();
+                this.updateChart();
+            } catch (e) {
+                console.error('Erreur stats:', e);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        initChart() {
+            const ctx = document.getElementById('evolutionChart').getContext('2d');
+            this.chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: this.stats.labels, datasets: this.stats.datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true, position: 'bottom', labels: { font: { family: 'Jost' }, color: '#003229' } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0, 50, 41, 0.05)' }, ticks: { font: { family: 'Jost' } } },
+                        x: { grid: { display: false }, ticks: { font: { family: 'Jost' } } }
+                    }
+                }
+            });
+        },
+
+        updateChart() {
+            if (!this.chart) return;
+            this.chart.data.labels = this.stats.labels;
+            this.chart.data.datasets = this.stats.datasets;
+            this.chart.update('none');
+        },
+
+        init() {
+            if (this.selectedSlug) {
+                this.fetchStats().then(() => this.initChart());
+                setInterval(() => {
+                    if (this.tab === 'active') this.fetchStats();
+                }, 5000);
+            }
+        }
+    }">
+        @php $displayCampaigns = $myActive->isNotEmpty() ? $myActive : ($participations ?? collect()); @endphp
+
+        {{-- ANALYTIQUES INTEGRÉS (Seulement si sessions actives existent) --}}
+        @if($myActive->isNotEmpty())
+        <div style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 80px;">
+            <!-- Selector and Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-left: 5px solid var(--accent);">
+                <div>
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--primary); margin: 0;">Performances Live</h2>
+                    <p style="font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.2em; margin-top: 5px;">Mise à jour toutes les 5 secondes</p>
+                </div>
+                <select x-model="selectedSlug" @change="fetchStats()" style="padding: 12px 25px; border: 1px solid var(--border); border-radius: 40px; font-family: 'Jost', sans-serif; font-weight: 600; color: var(--primary); cursor: pointer; outline: none;">
+                    <template x-for="c in campaigns" :key="c.slug">
+                        <option :value="c.slug" x-text="c.name"></option>
+                    </template>
+                </select>
+            </div>
+
+            <!-- KPI Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="background: white; padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-bottom: 3px solid #10b981;">
+                    <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">Revenus Totaux</div>
+                    <div style="display: flex; align-items: baseline; gap: 10px;">
+                        <span x-text="stats.total_amount" style="font-size: 2.2rem; font-weight: 700; color: var(--primary); font-family: 'Cormorant Garamond', serif;">0</span>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--accent);">FCFA</span>
+                    </div>
+                </div>
+                <div style="background: white; padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-bottom: 3px solid var(--accent);">
+                    <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">Total des Voix</div>
+                    <div x-text="stats.total_votes" style="font-size: 2.2rem; font-weight: 700; color: var(--primary); font-family: 'Cormorant Garamond', serif;">0</div>
+                </div>
+                <template x-if="stats.top_3 && stats.top_3[0]">
+                    <div style="background: var(--primary); padding: 30px; border-radius: 4px; box-shadow: var(--shadow-soft); border-bottom: 3px solid #d4ae6d;">
+                        <div style="font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px;">Leader Actuel</div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img :src="stats.top_3[0].image" x-show="stats.top_3[0].image" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #d4ae6d;">
+                            <div>
+                                <div x-text="stats.top_3[0].name" style="color: white; font-weight: 600; font-size: 1.1rem;"></div>
+                                <div style="color: #d4ae6d; font-size: 0.8rem; font-weight: 700;"><span x-text="stats.top_3[0].votes"></span> VOIX</div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Breakdown Électeurs : Système vs Anonymes -->
+            <template x-if="stats.voter_breakdown">
+                <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); padding: 25px 30px;">
+                    <div style="font-size: 0.65rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 18px;">Origine des Votes</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <!-- Comptes Système -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">Comptes Système</span>
+                                <span style="font-weight: 800; color: var(--primary);" x-text="stats.voter_breakdown.system_pct + '%'"></span>
+                            </div>
+                            <div style="height: 6px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                <div :style="'width:'+stats.voter_breakdown.system_pct+'%;background:var(--primary);height:100%;border-radius:10px;transition:width 0.8s;'"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;" x-text="stats.voter_breakdown.system + ' voix'"></div>
+                        </div>
+                        <!-- Anonymes -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim); font-style: italic;">Anonymes</span>
+                                <span style="font-weight: 800; color: var(--text-dim);" x-text="stats.voter_breakdown.anonymous_pct + '%'"></span>
+                            </div>
+                            <div style="height: 6px; background: #e5e7eb; border-radius: 10px; overflow: hidden;">
+                                <div :style="'width:'+stats.voter_breakdown.anonymous_pct+'%;background:var(--accent);height:100%;border-radius:10px;transition:width 0.8s;'"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;" x-text="stats.voter_breakdown.anonymous + ' voix'"></div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Tableau Vues & Visites par Candidat (Live) -->
+            <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
+                <div style="padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em;">👁 Vues &amp; Visites par Candidat</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="live-blink" style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                        <span style="font-size: 0.6rem; color: #10b981; font-weight: 700; text-transform: uppercase;">Live</span>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead style="background: #f9f6f0; font-size: 0.6rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.1em;">
+                        <tr>
+                            <th style="padding: 14px 25px; text-align: left;">Candidat</th>
+                            <th style="padding: 14px 25px; text-align: center;">⚡ Voix</th>
+                            <th style="padding: 14px 25px; text-align: center;">👤 Vues</th>
+                            <th style="padding: 14px 25px; text-align: center;">🔁 Visites</th>
+                            <th style="padding: 14px 25px; text-align: center; color: var(--primary);">🛡️ Système</th>
+                            <th style="padding: 14px 25px; text-align: center; color: var(--accent);">🕵️ Anonyme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="ds in stats.datasets" :key="ds.candidate_id">
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 14px 25px; font-weight: 600; color: var(--primary);">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div :style="'width:10px;height:10px;border-radius:50%;background:'+ds.borderColor"></div>
+                                        <span x-text="ds.label"></span>
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 25px; text-align: center; font-weight: 700; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;" x-text="ds.data.reduce((a,b)=>a+b, 0)"></td>
+                                <td style="padding: 14px 25px; text-align: center; font-weight: 700; color: #3b82f6;" x-text="ds.views ?? 0"></td>
+                                <td style="padding: 14px 25px; text-align: center; font-weight: 700; color: #8b5cf6;" x-text="ds.hits ?? 0"></td>
+                                <td style="padding: 14px 25px; text-align: center; font-weight: 8s00; color: var(--primary);" x-text="(ds.system_pct ?? 0) + '%'"></td>
+                                <td style="padding: 14px 25px; text-align: center; font-weight: 800; color: var(--accent);" x-text="(ds.anonymous_pct ?? 0) + '%'"></td>
+                            </tr>
+                        </template>
+                        <template x-if="!stats.datasets || stats.datasets.length === 0">
+                            <tr><td colspan="6" style="padding: 30px; text-align: center; color: var(--text-dim); font-style: italic;">Aucun candidat validé pour le moment.</td></tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Graph Section -->
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start;">
+                <!-- Recent Payments Sidebar -->
+                <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
+                    <div style="padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Derniers Flux</span>
+                        <div class="live-blink" style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                    </div>
+                    <div style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">
+                        <template x-for="vote in stats.recent_votes" :key="vote.time">
+                            <div style="padding: 15px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--primary); font-size: 0.8rem;" x-text="vote.is_anonymous ? 'Anonyme' : 'Compte Système'"></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-dim);"><span x-text="vote.count"></span> voix pour <span x-text="vote.candidate"></span></div>
+                                </div>
+                                <div style="font-weight: 800; color: var(--primary); text-align: right;">
+                                    <span x-text="vote.amount"></span>
+                                    <div style="font-size: 0.6rem; color: var(--accent);">XOF</div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Evolution Graph -->
+                <div style="background: white; padding: 40px; border-radius: 4px; box-shadow: var(--shadow-soft); height: 468px;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 30px;">Évolution des Votes</div>
+                    <div style="height: 330px; position: relative;">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 40px; text-align: center;">Détails de vos Sessions</div>
+
         @forelse($displayCampaigns as $camp)
         <div class="card-admin">
             @if($camp->video_path)
@@ -208,6 +418,7 @@
         </div>
     @endforelse
     </div>
+
 
     {{-- SECTION CANDIDATURES --}}
     @if($myCandidacies->isNotEmpty())
@@ -296,7 +507,7 @@
 
                             <div style="display: flex; gap: 15px; margin-top: 45px;">
                                 @if($candidacy->status === 'accepted')
-                                    <a href="{{ route('candidates.stats', $candidacy->id) }}" class="btn-action btn-primary-admin" style="flex: 3; padding: 20px; font-size: 0.8rem;">📉 Gérer mon classement & mes stats</a>
+                                    <a href="{{ route('candidates.stats', $candidacy->id) }}" class="btn-action" style="flex: 3; padding: 20px; font-size: 0.8rem; border: 1px solid var(--accent); color: var(--accent); background: transparent; transition: 0.3s;" onmouseover="this.style.background='var(--accent)';this.style.color='white';" onmouseout="this.style.background='transparent';this.style.color='var(--accent)';">Gérer mon classement &amp; mes stats</a>
                                 @elseif($candidacy->status === 'pending')
                                     <a href="{{ route('candidates.edit-apply', $candidacy->id) }}" class="btn-action btn-outline-admin" style="flex: 2; padding: 20px; border-color: var(--primary); color: var(--primary); font-size: 0.8rem;">Modifier mon dossier</a>
                                     <form id="cancel-app-{{ $candidacy->id }}" action="{{ route('candidates.destroy-apply', $candidacy->id) }}" method="POST" style="flex: 1; margin: 0;">
@@ -333,6 +544,8 @@
                     <tr>
                         <th style="padding: 25px;">Scrutin</th>
                         <th style="padding: 25px;">Votre Choix</th>
+                        <th style="padding: 25px; text-align: center;">Voix</th>
+                        <th style="padding: 25px; text-align: right;">Total Payé</th>
                         <th style="padding: 25px; text-align: right;">Date du Vote</th>
                     </tr>
                 </thead>
@@ -348,13 +561,15 @@
                                     <div style="font-weight: 600;">{{ $vote->candidate->name }}</div>
                                 </div>
                             </td>
+                            <td style="padding: 25px; text-align: center; font-weight: 700;">{{ $vote->votes_count }}</td>
+                            <td style="padding: 25px; text-align: right; font-weight: 700; color: #10b981;">{{ number_format($vote->amount, 0, ',', ' ') }} XOF</td>
                             <td style="padding: 25px; text-align: right; color: var(--text-dim); font-size: 0.85rem;">
                                 {{ $vote->created_at->format('d/m/Y à H:i') }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" style="padding: 60px; text-align: center; color: var(--text-dim); font-style: italic;">Vous n'avez pas encore émis de vote.</td>
+                            <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-dim); font-style: italic;">Vous n'avez pas encore émis de vote.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -363,4 +578,7 @@
     </div>
 
 </div>
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@endsection
 @endsection

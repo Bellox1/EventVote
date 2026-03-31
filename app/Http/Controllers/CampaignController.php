@@ -242,7 +242,6 @@ class CampaignController extends Controller
     }
 
     public function updateSettings(Request $request, $slug)
-
     {
         $campaign = Campaign::where('slug', $slug)->where('user_id', Auth::id())->firstOrFail();
         
@@ -259,5 +258,128 @@ class CampaignController extends Controller
         ]);
 
         return back()->with('success', 'Paramètres temporels mis à jour avec succès.');
+    }
+
+    public function getStats($slug)
+    {
+        $campaign = Campaign::where('slug', $slug)->firstOrFail();
+        $user = Auth::user();
+
+        // High Security: Only validated campaigns (active, paused, ended) have stats access
+        if (in_array($campaign->status, ['pending', 'rejected'])) {
+            return response()->json(['error' => 'Campagne non validée'], 403);
+        }
+
+        // Security: Creator, Admin or Accepted Candidate
+        $isCandidate = Candidate::where('campaign_id', $campaign->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'accepted')
+            ->exists();
+
+        if ($user->id !== $campaign->user_id && !$user->isAdmin() && !$isCandidate) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $candidates = $campaign->candidates()->where('status', 'accepted')->get();
+        $totalAmount = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('amount');
+        $totalVotes = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('votes_count');
+
+        // Vues & Visites par candidat depuis campaign_visits
+        $candidateViews = \App\Models\CampaignVisit::where('campaign_id', $campaign->id)
+            ->whereNotNull('candidate_id')
+            ->get()
+            ->groupBy('candidate_id');
+
+        // Top 3 Ranking
+        $top3 = $candidates->sortByDesc('votes_count')->take(3)->values()->map(function($c) {
+            return [
+                'name' => $c->name,
+                'votes' => (int) $c->votes_count,
+                'image' => $c->image_path ? asset('storage/' . $c->image_path) : null
+            ];
+        });
+
+        // Chart Data (Last 12 Hours)
+        $labels = [];
+        $datasets = [];
+        $colors = ['#d4ae6d', '#003229', '#10b981', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#6b7a77', '#34d399'];
+
+        for ($i = 11; $i >= 0; $i--) {
+            $hour = now()->subHours($i);
+            $labels[] = $hour->format('H:i');
+        }
+
+        foreach ($candidates as $index => $candidate) {
+            $data = [];
+            for ($i = 11; $i >= 0; $i--) {
+                $hour = now()->subHours($i);
+                $votes = Vote::where('candidate_id', $candidate->id)
+                    ->where('status', 'confirmed')
+                    ->whereBetween('created_at', [$hour->copy()->startOfHour(), $hour->copy()->endOfHour()])
+                    ->sum('votes_count');
+                $data[] = (int) $votes;
+            }
+
+            $cViews = $candidateViews->get($candidate->id, collect());
+            
+            // Calcul du breakdown spécifique au candidat
+            $cTotalVotes     = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->sum('votes_count') ?: 1;
+            $cSystemVotes    = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
+            $cAnonymousVotes = Vote::where('candidate_id', $candidate->id)->where('status', 'confirmed')->whereNull('user_id')->sum('votes_count');
+
+            $datasets[] = [
+                'label'           => $candidate->name,
+                'candidate_id'    => $candidate->id,
+                'data'            => $data,
+                'borderColor'     => $colors[$index % count($colors)],
+                'backgroundColor' => 'transparent',
+                'borderWidth'     => 3,
+                'tension'         => 0.4,
+                'pointRadius'     => 0,
+                'views'           => $cViews->count(),
+                'hits'            => $cViews->sum('hits'),
+                'system_pct'      => round(($cSystemVotes / $cTotalVotes) * 100, 1),
+                'anonymous_pct'   => round(($cAnonymousVotes / $cTotalVotes) * 100, 1),
+            ];
+        }
+
+        // Recent Payments – anonymisés, jamais de nom
+        $recentVotes = Vote::where('campaign_id', $campaign->id)
+            ->where('status', 'confirmed')
+            ->with(['candidate'])
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(function($v) {
+                return [
+                    'is_anonymous' => is_null($v->user_id),
+                    'candidate'    => $v->candidate->name,
+                    'count'        => $v->votes_count,
+                    'amount'       => number_format($v->amount, 0, ',', ' '),
+                    'time'         => $v->created_at->diffForHumans()
+                ];
+            });
+
+        // Breakdown Comptes Système vs Anonymes
+        $totalVotesInt  = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->sum('votes_count') ?: 1;
+        $systemVotes    = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->whereNotNull('user_id')->sum('votes_count');
+        $anonymousVotes = Vote::where('campaign_id', $campaign->id)->where('status', 'confirmed')->whereNull('user_id')->sum('votes_count');
+
+        $voterBreakdown = [
+            'system'    => (int) $systemVotes,
+            'anonymous' => (int) $anonymousVotes,
+            'system_pct'    => round(($systemVotes / $totalVotesInt) * 100, 1),
+            'anonymous_pct' => round(($anonymousVotes / $totalVotesInt) * 100, 1),
+        ];
+
+        return response()->json([
+            'labels'          => $labels,
+            'datasets'        => $datasets,
+            'total_amount'    => number_format($totalAmount, 0, ',', ' '),
+            'total_votes'     => number_format($totalVotes, 0, ',', ' '),
+            'recent_votes'    => $recentVotes,
+            'top_3'           => $top3,
+            'voter_breakdown' => $voterBreakdown,
+        ]);
     }
 }

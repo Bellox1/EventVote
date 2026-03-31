@@ -24,52 +24,54 @@ class PaymentController extends Controller
     {
         $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
-            'campaign_id' => 'required|exists:campaigns,id',
-            'votes_count' => 'required|integer|min:1|max:100',
+            'campaign_id'  => 'required|exists:campaigns,id',
+            'votes_count'  => 'required|integer|min:1|max:100',
         ]);
 
         $candidate = Candidate::findOrFail($request->candidate_id);
-        $campaign = Campaign::findOrFail($request->campaign_id);
-        
-        $amount = $campaign->vote_price * $request->votes_count;
-        $user = Auth::user();
+        $campaign  = Campaign::findOrFail($request->campaign_id);
+        $amount    = $campaign->vote_price * $request->votes_count;
+        $user      = Auth::user(); // peut être null (vote anonyme)
+
+        // Infos client pour FedaPay (anonyme si pas connecté)
+        $customerFirstname = $user ? $user->name  : 'Électeur';
+        $customerEmail     = $user ? $user->email : 'anonyme@vote-platform.bj';
+        $customerPhone     = $user ? preg_replace('/[^0-9]/', '', $user->phone ?? '90000000') : '90000000';
 
         try {
-            // Create transaction using FedaPay SDK
             $transaction = Transaction::create([
-                'description' => "Vote pour " . $candidate->name . " - " . $request->votes_count . " votes",
-                'amount' => (int) $amount,
-                'currency' => ['iso' => 'XOF'],
+                'description' => "Vote pour " . $candidate->name . " - " . $request->votes_count . " vote(s)",
+                'amount'      => (int) $amount,
+                'currency'    => ['iso' => 'XOF'],
                 'callback_url' => route('payment.callback'),
-                'customer' => [
-                    'firstname' => $user->name,
-                    'email' => $user->email,
+                'customer'    => [
+                    'firstname'    => $customerFirstname,
+                    'email'        => $customerEmail,
                     'phone_number' => [
-                        'number' => preg_replace('/[^0-9]/', '', $user->phone ?? '90000000'),
-                        'country' => 'bj' // Assuming Benin
+                        'number'  => $customerPhone,
+                        'country' => 'bj'
                     ]
                 ]
             ]);
 
             $token = $transaction->generateToken();
-            $url = $token->url;
+            $url   = $token->url;
 
-            // Create a pending vote record
+            // Enregistrer le vote en attente (user_id = null si anonyme)
             Vote::create([
-                'campaign_id' => $campaign->id,
+                'campaign_id'  => $campaign->id,
                 'candidate_id' => $candidate->id,
-                'user_id' => $user->id,
-                'votes_count' => $request->votes_count,
-                'amount' => $amount,
-                'payment_id' => $transaction->id,
-                'status' => 'pending',
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent()
+                'user_id'      => $user?->id,
+                'votes_count'  => $request->votes_count,
+                'amount'       => $amount,
+                'payment_id'   => $transaction->id,
+                'status'       => 'pending',
             ]);
 
             return redirect()->away($url);
 
         } catch (\Exception $e) {
+            Log::error('FedaPay error: ' . $e->getMessage());
             return back()->with('error', 'Erreur FedaPay : ' . $e->getMessage());
         }
     }

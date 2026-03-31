@@ -44,8 +44,8 @@ Route::middleware('auth')->group(function () {
         
         // 1. My created campaigns
         $myCreated = $user->campaigns()->latest()->get();
-        $myPending = $myCreated->where('status', 'pending');
-        $myActive = $myCreated->where('status', '!=', 'pending');
+        $myPending = $myCreated->whereIn('status', ['pending', 'rejected']);
+        $myActive = $myCreated->whereIn('status', ['active', 'paused', 'ended']);
         
         // 2. Mes Dossiers (Candidatures envoyées)
         $myCandidacies = \App\Models\Candidate::where('user_id', $user->id)
@@ -111,9 +111,11 @@ Route::middleware('auth')->group(function () {
 // Campaign and Vote
 Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
 Route::get('/campaigns/{slug}', [CampaignController::class, 'show'])->name('campaigns.show');
+Route::get('/api/campaigns/{slug}/stats', [CampaignController::class, 'getStats'])->name('api.campaigns.stats');
 Route::post('/campaigns/{slug}/vote', [VoteController::class, 'cast'])->name('vote.cast');
 
 Route::get('/campaigns/{slug}/candidates/{id}', [CandidateController::class, 'show'])->name('candidates.show');
+Route::get('/candidates/{id}/stats', [CandidateController::class, 'stats'])->name('candidates.stats');
 
 // Admin restricted
 Route::middleware(['auth', 'admin'])->group(function() {

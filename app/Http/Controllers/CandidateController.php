@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Models\Candidate;
+use App\Models\CampaignVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 use App\Mail\CandidateStatusMail;
 
 class CandidateController extends Controller
@@ -18,6 +20,19 @@ class CandidateController extends Controller
             ->where('id', $id)
             ->where('status', 'accepted')
             ->firstOrFail();
+
+        // Track candidate view/visit
+        $visit = CampaignVisit::firstOrCreate([
+            'campaign_id'  => $campaign->id,
+            'candidate_id' => $candidate->id,
+            'ip_address'   => request()->ip(),
+            'session_id'   => Session::getId(),
+        ]);
+        if (!$visit->wasRecentlyCreated) {
+            $visit->increment('hits'); // +1 vue (retour)
+        } elseif (Auth::check()) {
+            $visit->update(['user_id' => Auth::id()]);
+        }
 
         return view('candidates.show', compact('campaign', 'candidate'));
     }

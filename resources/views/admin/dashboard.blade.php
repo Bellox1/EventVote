@@ -41,6 +41,10 @@
                     <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Rejetées</div>
                     <div style="font-size: 2rem; font-family: 'Cormorant Garamond', serif; color: var(--primary);">{{ $rejectedDemandes }}</div>
                 </div>
+                <div style="background: var(--primary); padding: 20px 40px; border-radius: 4px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 3px solid var(--accent);">
+                    <div style="font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px;">Revenus Plateforme</div>
+                    <div style="font-size: 2rem; font-family: 'Cormorant Garamond', serif; color: white;">{{ number_format($totalRevenue ?? 0, 0, ',', ' ') }} <span style="font-size: 0.9rem; color: var(--accent);">XOF</span></div>
+                </div>
             </div>
         </div>
 
@@ -299,7 +303,8 @@
                         <tr>
                             <th style="padding: 20px;">Scrutin</th>
                             <th style="padding: 20px; text-align: center;">Vues</th>
-                            <th style="padding: 20px; text-align: center;">Votes</th>
+                            <th style="padding: 20px; text-align: center;">Total Voix</th>
+                            <th style="padding: 20px; text-align: center;">Revenus Brut</th>
                             <th style="padding: 20px; text-align: right;">Conversion</th>
                         </tr>
                     </thead>
@@ -311,7 +316,8 @@
                                     <div style="font-size: 0.7rem; color: var(--accent);">Créateur : {{ $s->creator->name ?? 'Anon' }}</div>
                                 </td>
                                 <td style="padding: 20px; text-align: center; font-weight: 700;">{{ $s->unique_views_count }}</td>
-                                <td style="padding: 20px; text-align: center; font-weight: 700;">{{ $s->votes_count }}</td>
+                                <td style="padding: 20px; text-align: center; font-weight: 800; color: var(--primary);">{{ $s->votes_sum_count ?? 0 }}</td>
+                                <td style="padding: 20px; text-align: center; font-weight: 800; color: #10b981;">{{ number_format($s->revenue ?? 0, 0, ',', ' ') }} XOF</td>
                                 <td style="padding: 20px; text-align: right; color: var(--accent); font-weight: 700;">
                                     {{ $s->unique_views_count > 0 ? round(($s->votes_count / $s->unique_views_count) * 100, 1) : 0 }}%
                                 </td>
@@ -319,6 +325,51 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <!-- DERNIERS FLUX FINANCIERS -->
+            <div style="margin-top: 60px;">
+                <div style="font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--primary); margin-bottom: 30px; text-align: center;">Dernières Transactions Confirmées</div>
+                <div style="background: white; border-radius: 4px; box-shadow: var(--shadow-soft); overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: var(--accent); color: white; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.1em;">
+                            <tr>
+                                <th style="padding: 20px;">Client</th>
+                                <th style="padding: 20px;">Scrutin / Choix</th>
+                                <th style="padding: 20px; text-align: right;">Montant</th>
+                                <th style="padding: 20px; text-align: center;">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentTransactions ?? [] as $tx)
+                                <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
+                                    <td style="padding: 20px;">
+                                        @if($tx->user)
+                                            <div style="font-weight: 700; color: var(--primary);">{{ $tx->user->name }}</div>
+                                            <div style="font-size: 0.7rem; color: var(--text-dim);">{{ $tx->user->email }}</div>
+                                        @else
+                                            <div style="font-weight: 700; color: var(--text-dim); font-style: italic;">Anonyme</div>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 20px;">
+                                        <div style="font-weight: 600;">{{ $tx->campaign->name }}</div>
+                                        <div style="font-size: 0.75rem; color: var(--accent);"><span style="font-weight: 800;">{{ $tx->votes_count }}</span> voix pour {{ $tx->candidate->name }}</div>
+                                    </td>
+                                    <td style="padding: 20px; text-align: right;">
+                                        <div style="font-weight: 800; color: #10b981;">{{ number_format($tx->amount, 0, ',', ' ') }} XOF</div>
+                                    </td>
+                                    <td style="padding: 20px; text-align: center; color: var(--text-dim); font-size: 0.8rem;">
+                                        {{ $tx->created_at->format('d/m à H:i') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-dim); font-style: italic;">Aucune transaction bancaire confirmée.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
