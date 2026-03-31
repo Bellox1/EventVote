@@ -12,6 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('campaign_visits', function (Blueprint $table) {
+            // Add candidate_id column
+            $table->foreignId('candidate_id')->nullable()->constrained()->onDelete('cascade');
+            
             // Drop old unique index
             $table->dropUnique(['campaign_id', 'ip_address', 'session_id']);
             
