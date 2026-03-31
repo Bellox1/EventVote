@@ -123,4 +123,12 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin Configuration
+    |--------------------------------------------------------------------------
+    */
+    'super_admin_email' => env('SUPER_ADMIN_EMAIL', 'eventvote229@gmail.com'),
+    'super_admin_number' => env('SUPER_ADMIN_NUMBER', '+229 10 46 86 25 36'),
+
 ];

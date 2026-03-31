@@ -184,23 +184,17 @@ class AdminController extends Controller
             'message' => 'required|string',
         ]);
 
-        $adminEmail = env('SUPER_ADMIN_EMAIL', 'eventvote229@gmail.com');
+        $adminEmail = config('app.super_admin_email');
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'subject' => $request->subject,
+            'contactMessage' => $request->message
+        ];
 
-        Mail::send([], [], function ($message) use ($request, $adminEmail) {
+        Mail::send('emails.contact-message', $data, function ($message) use ($request, $adminEmail) {
             $message->to($adminEmail)
-                    ->subject("Contact [{$request->subject}] de {$request->name}")
-                    ->html("
-                        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee;'>
-                            <h2>Nouveau message de contact</h2>
-                            <p><strong>Nom:</strong> {$request->name}</p>
-                            <p><strong>Email:</strong> {$request->email}</p>
-                            <p><strong>Sujet:</strong> {$request->subject}</p>
-                            <p><strong>Message:</strong></p>
-                            <div style='background: #f9f9f9; padding: 15px; border-radius: 4px;'>
-                                " . nl2br(e($request->message)) . "
-                            </div>
-                        </div>
-                    ");
+                    ->subject("Nouveau Contact [{$request->subject}] de {$request->name}");
         });
 
         return back()->with('success', 'Votre Excellence, votre demande a bien été transmise. Nos experts vous contacteront sous peu.');
