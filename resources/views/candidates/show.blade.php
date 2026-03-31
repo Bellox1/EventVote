@@ -19,6 +19,18 @@
     <div x-data="{ 
         showGallery: false, 
         activeIdx: 0,
+        globalUi: true,
+        uiTimer: null,
+        wake() {
+            this.globalUi = true;
+            clearTimeout(this.uiTimer);
+            this.uiTimer = setTimeout(() => {
+                const vid = document.querySelector('video[data-gal-vid]');
+                if (vid && !vid.paused && this.showGallery) {
+                    this.globalUi = false;
+                }
+            }, 2500);
+        },
         items: [
             @if($candidate->image_path)
                 { type: 'image', path: '{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}' },
@@ -152,9 +164,9 @@
         </div>
 
         <!-- 3. FULLSCREEN GALLERY OVERLAY -->
-        <div x-show="showGallery" style="position: fixed; inset: 0; z-index: 99999;" x-transition.opacity.duration.300ms>
+        <div x-show="showGallery" @mousemove="wake()" @click="wake()" style="position: fixed; inset: 0; z-index: 99999;" x-transition.opacity.duration.300ms>
             <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column;">
-                <button @click="close()" style="position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; z-index: 100; cursor: pointer;">
+                <button x-show="globalUi" x-transition.opacity @click="close()" style="position: absolute; top: 40px; right: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 60px; height: 60px; border-radius: 50%; z-index: 100; cursor: pointer;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
 
@@ -165,151 +177,24 @@
                     </template>
 
                     <template x-if="items[activeIdx] && items[activeIdx].type === 'video'">
-                        <div x-data="{
-                            playing: false,
-                            currentTime: 0,
-                            duration: 0,
-                            progress: 0,
-                            ui: true,
-                            hideTimer: null,
-                            fs: false,
-                            fL: false, fR: false,
-
-                            init() {
-                                const v = this.$refs.galVid;
-                                v.addEventListener('timeupdate', () => {
-                                    this.currentTime = v.currentTime;
-                                    this.progress = v.duration ? (v.currentTime / v.duration) * 100 : 0;
-                                });
-                                v.addEventListener('loadedmetadata', () => { this.duration = v.duration; });
-                                v.addEventListener('play',  () => this.playing = true);
-                                v.addEventListener('pause', () => this.playing = false);
-                                v.addEventListener('ended', () => { this.playing = false; next(); });
-                                v.play().catch(() => {});
-                            },
-
-                            showUi() {
-                                this.ui = true;
-                                clearTimeout(this.hideTimer);
-                                if (this.playing) this.hideTimer = setTimeout(() => this.ui = false, 2500);
-                            },
-
-                            togglePlay() {
-                                const v = this.$refs.galVid;
-                                this.playing ? v.pause() : v.play();
-                                this.showUi();
-                            },
-
-                            skip(s) {
-                                const v = this.$refs.galVid;
-                                v.currentTime = Math.max(0, Math.min(v.duration, v.currentTime + s));
-                                s < 0 ? (this.fL = true, setTimeout(() => this.fL = false, 500)) : (this.fR = true, setTimeout(() => this.fR = false, 500));
-                                this.showUi();
-                            },
-
-                            seek(e) {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const pct  = (e.clientX - rect.left) / rect.width;
-                                this.$refs.galVid.currentTime = pct * this.$refs.galVid.duration;
-                                this.showUi();
-                            },
-
-                            fmt(s) {
-                                if (!s || isNaN(s)) return '0:00';
-                                const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-                                return m + ':' + (sec < 10 ? '0' : '') + sec;
-                            },
-
-                            toggleFs() {
-                                const el = this.$refs.galVidWrapper;
-                                if (!document.fullscreenElement) {
-                                    el.requestFullscreen && el.requestFullscreen();
-                                    this.fs = true;
-                                } else {
-                                    document.exitFullscreen && document.exitFullscreen();
-                                    this.fs = false;
-                                }
-                            }
-                        }"
-                        x-init="init()"
-                        x-ref="galVidWrapper"
-                        @fullscreenchange.window="fs = !!document.fullscreenElement"
-                        @mousemove="showUi()" @mouseleave="ui = false"
-                        style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end; background: #000;">
-
-                            <!-- Vidéo sans controls natifs -->
-                            <video x-ref="galVid" playsinline
+                        <div style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000;">
+                            <video controls playsinline autoplay
                                    :src="items[activeIdx].path"
-                                   @click="togglePlay()"
-                                   @dblclick="toggleFs()"
-                                   style="max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 4px; cursor: pointer; display: block; margin: auto;">
+                                   style="max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 4px; display: block;">
                             </video>
-
-                            <!-- Overlay contrôles -->
-                            <div
-                                 style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;">
-
-                                <!-- Boutons -10s / Play / +10s centrés -->
-                                <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 60px;">
-                                    <button @click.stop="skip(-10)"
-                                            style="pointer-events: auto; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); color: white; border: 2px solid rgba(255,255,255,0.25); width: 70px; height: 70px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; gap: 2px; transition: background 0.2s;"
-                                            onmouseover="this.style.background='rgba(0,0,0,0.85)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 17L6 12L11 7"/><path d="M18 17L13 12L18 7"/></svg>
-                                        <span style="font-size: 9px; font-weight: 700;">10s</span>
-                                    </button>
-
-                                    <button @click.stop="togglePlay()"
-                                            style="pointer-events: auto; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); color: white; border: 2px solid rgba(255,255,255,0.25); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;"
-                                            onmouseover="this.style.background='rgba(0,0,0,0.85)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">
-                                        <svg x-show="!playing" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-                                        <svg x-show="playing" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                                    </button>
-
-                                    <button @click.stop="skip(10)"
-                                            style="pointer-events: auto; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); color: white; border: 2px solid rgba(255,255,255,0.25); width: 70px; height: 70px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; gap: 2px; transition: background 0.2s;"
-                                            onmouseover="this.style.background='rgba(0,0,0,0.85)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 17L18 12L13 7"/><path d="M6 17L11 12L6 7"/></svg>
-                                        <span style="font-size: 9px; font-weight: 700;">10s</span>
-                                    </button>
-                                </div>
-
-                                <!-- Barre bas : progress + temps + FS -->
-                                <div style="pointer-events: auto; padding: 0 20px 14px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
-                                    <div @click.stop="seek($event)"
-                                         style="width: 100%; height: 4px; background: rgba(255,255,255,0.25); border-radius: 4px; cursor: pointer; margin-bottom: 10px; position: relative;"
-                                         onmouseover="this.style.height='6px'" onmouseout="this.style.height='4px'">
-                                        <div :style="'width:' + progress + '%;'" style="height: 100%; background: var(--accent); border-radius: 4px; position: relative; pointer-events: none;">
-                                            <div style="position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; background: white; border-radius: 50%;"></div>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                                        <span style="color: rgba(255,255,255,0.85); font-size: 0.75rem; font-weight: 600;" x-text="fmt(currentTime) + ' / ' + fmt(duration)"></span>
-                                        <button @click.stop="toggleFs()"
-                                                style="background: none; border: none; color: rgba(255,255,255,0.85); cursor: pointer; padding: 0; display: flex; align-items: center;"
-                                                title="Plein écran">
-                                            <svg x-show="!fs" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                                            <svg x-show="fs" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Flash -10s / +10s -->
-                            <div x-show="fL" x-transition style="position: absolute; left: 15%; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); backdrop-filter: blur(6px); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.85rem; pointer-events: none; z-index: 20;">-10s</div>
-                            <div x-show="fR" x-transition style="position: absolute; right: 15%; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); backdrop-filter: blur(6px); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.85rem; pointer-events: none; z-index: 20;">+10s</div>
                         </div>
                     </template>
 
                     <!-- Nav Arrows -->
-                    <button @click="prev()" x-show="items.length > 1" class="gal-arrow" style="position: absolute; left: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
+                    <button @click="prev()" x-show="items.length > 1 && globalUi" x-transition.opacity class="gal-arrow" style="position: absolute; left: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
-                    <button @click="next()" x-show="items.length > 1" class="gal-arrow gal-arrow-next" style="position: absolute; right: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
+                    <button @click="next()" x-show="items.length > 1 && globalUi" x-transition.opacity class="gal-arrow gal-arrow-next" style="position: absolute; right: 30px; top: 50%; background: none; border: none; color: white; cursor: pointer; z-index: 1000; opacity: 0.5;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
 
-                <div style="height: 100px; padding: 0 60px; display: flex; justify-content: center; align-items: center; gap: 40px;">
+                <div x-show="globalUi" x-transition.opacity style="height: 100px; padding: 0 60px; display: flex; justify-content: center; align-items: center; gap: 40px;">
                     <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.3em; font-weight: 700;">
                         Collection &bull; <span x-text="activeIdx + 1"></span> Sur <span x-text="items.length"></span>
                     </div>

@@ -32,17 +32,29 @@
                 showControls: false, 
                 progress: 0,
                 volume: 1,
+                hideTimeout: null,
+                wakeControls() {
+                    this.showControls = true;
+                    clearTimeout(this.hideTimeout);
+                    if (this.playing) {
+                        this.hideTimeout = setTimeout(() => { this.showControls = false; }, 2500);
+                    }
+                },
                 togglePlay() {
                     if (this.$refs.video.paused) {
                         this.$refs.video.play();
                         this.playing = true;
+                        this.wakeControls();
                     } else {
                         this.$refs.video.pause();
                         this.playing = false;
+                        this.showControls = true;
+                        clearTimeout(this.hideTimeout);
                     }
                 },
                 skip(time) {
                     this.$refs.video.currentTime += time;
+                    this.wakeControls();
                 },
                 updateProgress() {
                     this.progress = (this.$refs.video.currentTime / this.$refs.video.duration) * 100;
@@ -57,8 +69,8 @@
             }" 
             x-ref="container"
             class="video-container"
-            @mouseenter="showControls = true" 
-            @mouseleave="showControls = false"
+            @mousemove="wakeControls()" 
+            @mouseleave="if(playing) { showControls = false; clearTimeout(hideTimeout); }"
             style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4); background: #000; aspect-ratio: 16/9; cursor: pointer;">
                 
                 <video x-ref="video" 
@@ -116,15 +128,17 @@
         
         <!-- Image -->
         @if ($campaign->image_path)
-            <div style="width: 100%; border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-hard);">
+            <div style="width: 100%; border-radius: 4px; overflow: hidden; box-shadow: var(--shadow-hard); background: #051a16;">
                 <img src="{{ Str::startsWith($campaign->image_path, 'http') ? $campaign->image_path : asset('storage/' . $campaign->image_path) }}" 
-                     style="width: 100%; height: auto; display: block; object-fit: cover;">
+                     style="width: 100%; max-height: 500px; display: block; object-fit: contain; margin: 0 auto;">
             </div>
         @endif
 
         <!-- Info Section -->
         <div style="padding: 20px 0;">
+            @auth @if(Auth::id() === $campaign->user_id || Auth::user()->isAdmin())
             <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 24px;">RÉF: #{{ $campaign->code }}</div>
+            @endif @endauth
             <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); color: var(--primary); margin-bottom: 35px; line-height: 1.1; font-weight: 300;">
                 {{ $campaign->name }}
             </h1>
@@ -186,17 +200,16 @@
                             </div>
                             
                             <div class="candidate-card" style="position: relative; aspect-ratio: 1/1; overflow: hidden; border-radius: 4px; margin: 0 auto 24px; box-shadow: var(--shadow-soft); background: var(--primary); cursor: pointer; max-width: 400px;">
-                                <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; height: 100%;">
+                                <div style="display: block; width: 100%; height: 100%; background: #000;">
                                      @if($candidate->image_path)
                                         <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" 
-                                             class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
+                                             class="media-item" style="width: 100%; height: 100%; object-fit: contain; transition: all 0.6s;">
                                      @elseif($candidate->video_path)
-                                        <video autoplay loop muted playsinline class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
+                                        <video controls class="media-item" style="width: 100%; height: 100%; object-fit: contain; transition: all 0.6s; background: #000;">
                                             <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
                                         </video>
                                      @endif
-                                     <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4));"></div>
-                                </a>
+                                </div>
 
                                  <div class="voting-overlay">
                                     @if ($campaign->isActive())
@@ -246,19 +259,16 @@
             @forelse($candidates as $candidate)
                 <div style="display: flex; flex-direction: column;">
                     <div class="candidate-card" style="position: relative; aspect-ratio: 4/5; overflow: hidden; cursor: pointer; transition: all 0.5s; border-radius: 4px; margin-bottom: 25px;">
-                        <a href="{{ route('candidates.show', [$campaign->slug, $candidate->id]) }}" style="display: block; width: 100%; height: 100%;">
-                            <div style="width: 100%; height: 100%; position: relative; overflow: hidden;">
+                            <div style="width: 100%; height: 100%; position: relative; overflow: hidden; background: #000;">
                                 @if ($candidate->image_path)
                                     <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}"
-                                        class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);">
+                                        class="media-item" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);">
                                 @elseif($candidate->video_path)
-                                    <video autoplay loop muted playsinline class="media-item" style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s;">
+                                    <video controls class="media-item" style="width: 100%; height: 100%; object-fit: contain; transition: all 0.6s; background: #000;">
                                         <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
                                     </video>
                                 @endif
-                                <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4));"></div>
                             </div>
-                        </a>
                         
                         <!-- Voting Action (Hover) -->
                         <div class="voting-overlay">

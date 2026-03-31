@@ -3,6 +3,26 @@
 @section('title', 'Gérer – ' . $campaign->name)
 
 @section('content')
+<style>
+    .manage-grid { display: grid; grid-template-columns: 1.5fr 1fr; align-items: flex-start; gap: 60px; margin-bottom: 120px; }
+    .settings-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; align-items: end; }
+    @media (max-width: 1024px) {
+        .manage-grid { grid-template-columns: 1fr; gap: 40px; }
+        .stat-box { width: 100%; text-align: center !important; }
+    }
+    @media (max-width: 600px) {
+        .settings-form { grid-template-columns: 1fr; gap: 20px; }
+        .candidate-row { flex-direction: column !important; align-items: flex-start !important; gap: 20px; }
+        .candidate-actions { width: 100%; justify-content: flex-start !important; flex-wrap: wrap; gap: 10px; }
+        .pending-media { flex-direction: column !important; }
+        .pending-vid { width: 100% !important; height: auto !important; aspect-ratio: 16/9; }
+        .pending-actions { flex-direction: column !important; }
+        .archive-card { flex-direction: column !important; align-items: flex-start !important; gap: 20px; }
+        .archive-actions { width: 100%; }
+        input[type="datetime-local"] { padding: 0 10px !important; font-size: 0.9rem !important; width: 100% !important; display: block; -webkit-appearance: none; appearance: none; text-align: center !important; }
+        select[name="status"] { text-align: center !important; text-align-last: center !important; }
+    }
+</style>
 <div style="margin-bottom: 20px;">
     <a href="{{ route('dashboard') }}" style="display: inline-flex; align-items: center; gap: 10px; color: var(--accent); text-decoration: none; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; transition: 0.3s;" onmouseover="this.style.transform='translateX(-5px)'" onmouseout="this.style.transform='translateX(0)'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -16,7 +36,7 @@
         <p style="color: var(--text-dim); font-size: 1.1rem; max-width: 600px; line-height: 1.8;">Supervisez les candidatures, validez les participations et suivez l'intégrité des résultats en temps réel.</p>
     </div>
     
-    <div style="text-align: right; background: white; padding: 32px 48px; border-radius: var(--radius); border: none; box-shadow: var(--shadow-soft);">
+    <div class="stat-box" style="text-align: right; background: white; padding: 32px 48px; border-radius: var(--radius); border: none; box-shadow: var(--shadow-soft);">
         <div style="font-size: 0.75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 8px;">Suffrages Exprimés</div>
         <div style="font-size: 4rem; font-family: 'Cormorant Garamond', serif; font-weight: 300; color: var(--primary); line-height: 1;">{{ $votesCount }}</div>
     </div>
@@ -37,14 +57,14 @@
         </div>
     </div>
 
-    <form action="{{ route('campaigns.settings', $campaign->slug) }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; align-items: end;">
+    <form action="{{ route('campaigns.settings', $campaign->slug) }}" method="POST" class="settings-form">
         @csrf
         @method('PUT')
         
         <!-- Status -->
-        <div>
+        <div style="width: 100%;">
             <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px;">Contrôle Manuel</label>
-            <select name="status" style="width: 100%; height: 50px; padding: 0 15px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
+            <select name="status" style="box-sizing: border-box; width: 100%; height: 50px; padding: 0 15px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
                 <option value="active" {{ $campaign->status === 'active' ? 'selected' : '' }}>Ouvert / Actif</option>
                 <option value="paused" {{ $campaign->status === 'paused' ? 'selected' : '' }}>En Pause / Masqué</option>
                 <option value="ended" {{ $campaign->status === 'ended' ? 'selected' : '' }}>Clôturé / Terminé</option>
@@ -52,20 +72,20 @@
         </div>
 
         <!-- Start Date -->
-        <div>
+        <div style="width: 100%;">
             <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px;">Début Prévu (Auto)</label>
-            <input type="datetime-local" name="start_at" value="{{ $campaign->start_at ? $campaign->start_at->format('Y-m-d\TH:i') : '' }}" style="width: 100%; height: 50px; padding: 0 15px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
+            <input type="datetime-local" name="start_at" value="{{ $campaign->start_at ? $campaign->start_at->format('Y-m-d\TH:i') : '' }}" style="box-sizing: border-box; width: 100%; height: 50px; padding: 0 10px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
         </div>
 
         <!-- End Date -->
-        <div>
+        <div style="width: 100%;">
             <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px;">Fin Prévue (Auto)</label>
-            <input type="datetime-local" name="end_at" value="{{ $campaign->end_at ? $campaign->end_at->format('Y-m-d\TH:i') : '' }}" style="width: 100%; height: 50px; padding: 0 15px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
+            <input type="datetime-local" name="end_at" value="{{ $campaign->end_at ? $campaign->end_at->format('Y-m-d\TH:i') : '' }}" style="box-sizing: border-box; width: 100%; height: 50px; padding: 0 10px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Jost', sans-serif; font-size: 1rem; color: var(--primary); background: #fdfcf9;">
         </div>
 
         <!-- Submit -->
-        <div>
-            <button type="submit" class="btn" style="width: 100%; height: 50px; background: var(--primary); color: white; border: none; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 4px;">APPLIQUER</button>
+        <div style="width: 100%;">
+            <button type="submit" class="btn" style="box-sizing: border-box; width: 100%; height: 50px; background: var(--primary); color: white; border: none; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 4px;">APPLIQUER</button>
         </div>
     </form>
     
@@ -74,7 +94,7 @@
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1.5fr 1fr; align-items: flex-start; gap: 60px; margin-bottom: 120px;">
+<div class="manage-grid">
     <!-- Live Results & Ordering -->
     <div>
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 40px;">
@@ -84,7 +104,7 @@
         
         <div style="display: flex; flex-direction: column; gap: 24px;">
             @forelse($results as $index => $candidate)
-                <div class="card" style="padding: 24px; display: flex; align-items: center; justify-content: space-between; border: none; background: white; border-left: 6px solid {{ $index === 0 ? 'var(--accent)' : 'var(--border)' }};">
+                <div class="card candidate-row" style="padding: 24px; display: flex; align-items: center; justify-content: space-between; border: none; background: white; border-left: 6px solid {{ $index === 0 ? 'var(--accent)' : 'var(--border)' }};">
                     <div style="display: flex; align-items: center; gap: 24px; flex: 1;">
                         <span style="font-size: 1.5rem; font-family: 'Cormorant Garamond', serif; color: var(--accent); width: 25px; opacity: 0.6;">{{ sprintf('%02d', $index + 1) }}</span>
                         
@@ -104,7 +124,7 @@
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="candidate-actions" style="display: flex; gap: 15px; align-items: center;">
                         <!-- Update Order Form -->
                         <form action="{{ route('candidate-applications.manage', $candidate->id) }}" method="POST" style="display: flex; gap: 10px; align-items: center; margin: 0;">
                             @csrf
@@ -155,7 +175,7 @@
                 <div class="card" style="padding: 40px; border: none; background: white;">
                     <div style="display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap;">
                         <!-- Media Preview -->
-                        <div style="display: flex; gap: 15px; flex-shrink: 0;">
+                        <div class="pending-media" style="display: flex; gap: 15px; flex-shrink: 0; width: 100%;">
                             @if($candidate->image_path)
                                 <div style="width: 140px; height: 180px; border-radius: 8px; overflow: hidden; background: var(--border); box-shadow: var(--shadow-soft);">
                                     <img src="{{ Str::startsWith($candidate->image_path, 'http') ? $candidate->image_path : asset('storage/' . $candidate->image_path) }}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -163,7 +183,7 @@
                             @endif
 
                             @if($candidate->video_path)
-                                <div style="width: 240px; height: 180px; border-radius: 8px; overflow: hidden; background: #000; box-shadow: var(--shadow-soft); position: relative;">
+                                <div class="pending-vid" style="width: 240px; height: 180px; border-radius: 8px; overflow: hidden; background: #000; box-shadow: var(--shadow-soft); position: relative;">
                                     <video controls style="width: 100%; height: 100%; object-fit: cover;">
                                         <source src="{{ Str::startsWith($candidate->video_path, 'http') ? $candidate->video_path : asset('storage/' . $candidate->video_path) }}" type="video/mp4">
                                     </video>
@@ -196,7 +216,7 @@
                             <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; font-style: italic;">Plus le chiffre est petit, plus le candidat apparaît en premier.</div>
                         </div>
 
-                        <div style="display: flex; gap: 16px;">
+                        <div class="pending-actions" style="display: flex; gap: 16px;">
                             <input type="hidden" name="status" value="accepted">
                             <button type="submit" class="btn btn-primary" style="flex: 2; font-size: 0.75rem; padding: 18px;">Approuver la demande</button>
                             <button type="button" @click="Swal.fire({ title: 'Refuser ce candidat ?', text: 'Optionnel. Vous pouvez fournir un motif au candidat.', input: 'textarea', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff4444' }).then((r) => { if (r.isConfirmed) { document.getElementById('reject-reason-{{ $candidate->id }}').value = r.value; document.getElementById('reject-form-{{ $candidate->id }}').submit(); } })" class="btn btn-outline" style="flex: 1; font-size: 0.75rem; padding: 18px; border-width: 1px;">Décliner</button>
@@ -272,7 +292,7 @@
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; max-width: 1000px; margin: 0 auto;">
         @php $archived = $allCandidates->whereNotNull('deleted_at'); @endphp
         @forelse($archived as $candidate)
-            <div class="card" style="width: 100%; max-width: 480px; padding: 24px; display: flex; align-items: center; justify-content: space-between; border: 1px dashed var(--border); background: #fdfdfd;">
+            <div class="card archive-card" style="width: 100%; max-width: 480px; padding: 24px; display: flex; align-items: center; justify-content: space-between; border: 1px dashed var(--border); background: #fdfdfd;">
                 <div style="display: flex; align-items: center; gap: 20px; flex: 1;">
                     <div style="width: 80px; height: 100px; border-radius: 8px; overflow: hidden; background: var(--border); flex-shrink: 0; opacity: 0.5;">
                         @if($candidate->image_path)
@@ -290,7 +310,7 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="archive-actions" style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- Restore Form -->
                     <form action="{{ route('candidates.restore', $candidate->id) }}" method="POST" style="margin: 0;">
                         @csrf

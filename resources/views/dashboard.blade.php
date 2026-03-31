@@ -27,10 +27,33 @@
     <p style="color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; font-size: clamp(0.6rem, 3vw, 0.8rem);">Gestion de vos sessions & participations</p>
 </div>
 
-<div style="display: flex; justify-content: center; margin-bottom: 80px;">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 80px; padding: 0 20px;">
     <a href="{{ route('campaigns.create') }}" class="btn-action btn-primary-admin" style="padding: 18px 50px; font-size: 0.85rem; letter-spacing: 0.3em; color: white;">
         + Créer un nouveau scrutin
     </a>
+
+    <div style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: -15px;">OU PARTICIPER À UN SCRUTIN EXISTANT</div>
+
+    <!-- Rejoindre un scrutin (Devenir Candidat) -->
+    <form x-data="{ code: '' }" @submit.prevent="
+        let val = code.trim();
+        if (!val) return;
+        if (val.includes('campaigns/')) {
+            let split = val.split('campaigns/');
+            let slug = split[1].split('/')[0];
+            window.location.href = '/campaigns/' + slug + '/apply';
+        } else {
+            window.location.href = '/campaigns/' + encodeURIComponent(val) + '/apply';
+        }" 
+        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; background: white; padding: 8px; border-radius: 50px; box-shadow: var(--shadow-soft); max-width: 500px; width: 100%; border: 1px solid rgba(212, 174, 109, 0.3);">
+        
+        <input type="text" x-model="code" placeholder="Lien ou code de la campagne..." required
+               style="flex: 1; border: none; padding: 12px 15px; outline: none; border-radius: 40px; font-family: 'Jost', sans-serif; font-size: 0.9rem; color: var(--primary); background: transparent; min-width: 0;">
+        
+        <button type="submit" class="btn-action btn-outline-admin" style="padding: 12px 20px; border-radius: 40px; font-size: 0.75rem; white-space: nowrap;">
+            Rejoindre
+        </button>
+    </form>
 </div>
 
 <div x-data="{ tab: '{{ $myPending->isNotEmpty() ? 'pending' : 'active' }}' }" style="max-width: 1100px; margin: 0 auto; padding-bottom: 100px;">

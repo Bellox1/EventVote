@@ -78,7 +78,7 @@
                 <div class="campaign-card-body" style="padding: 30px;">
                     <div
                         style="font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 20px;">
-                        REF: #{{ $campaign->code }}</div>
+                        @auth @if(Auth::id() === $campaign->user_id || Auth::user()->isAdmin()) REF: #{{ $campaign->code }} @endif @endauth</div>
                     <h3
                         style="color: var(--primary); font-size: 2rem; margin: 0 0 24px; font-weight: 400; line-height: 1.1;">
                         {{ $campaign->name }}</h3>
