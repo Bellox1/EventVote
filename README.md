@@ -1,59 +1,63 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🗳️ EventVote - Système de Vote Événementiel & Paiement Intégré
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**EventVote** est une plateforme haut de gamme spécialisée dans la gestion de concours et de votes événementiels (Miss, Awards, Compétitions). Elle est conçue pour supporter un engagement massif tout en régulant les flux de votes pour garantir une compétition équitable.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 👥 Les Acteurs du Système
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+La plateforme orchestre 4 types de profils avec des privilèges dédiés :
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1.  **🛡️ Super Administrateur** : Modère la plateforme, valide les nouvelles campagnes et dispose d'une vue d'ensemble sur toutes les statistiques.
+2.  **🏢 Organisateur (Promoteur)** : Crée et personnalise ses propres campagnes, gère ses candidats et suit le chiffre d'affaires généré par ses événements.
+3.  **🌟 Candidat** : Participe aux événements, dispose d'un profil multimédia et accède à ses statistiques de votes personnelles pour suivre sa popularité.
+4.  **🗳️ Votant (Public)** : Le cœur du système. Il soutient ses candidats favoris via des votes gratuits ou payants.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🌟 Régulation & Équité des Votes
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Le système applique des règles de vote intelligentes pour maximiser l'engagement tout en évitant les abus :
+*   **🔋 Soutien Fidèle** : Chaque fan peut voter jusqu'à un **maximum de 100 fois** par campagne.
+*   **⏱️ Délai de Courtoisie** : Un intervalle de **60 secondes (1 minute)** est requis entre chaque vote pour garantir une compétition saine.
+*   **💳 Votes Premium** : Système monétisé avec validation automatique pour un comptage instantané des points.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ✨ Fonctionnalités Avancées
 
-### ÉVÉNEMENTIELLE Partners
+*   **🏆 CMS de Campagnes** : Cycle complet de gestion (Slug unique, Codes de participation, Tracking des visites).
+*   **👨‍💼 Workflow de Candidature** : Modération fluide des dossiers (En attente / Accepté / Rejeté).
+*   **🎥 Galerie Immersive** : Profils enrichis avec vidéos (YouTube/Vimeo) et photos HD.
+*   **📈 Dashboard Analytics** : Graphiques en temps réel sur 12h, top ranking et breakdown de l'activité des votants.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 🛠️ Stack Technique
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+*   **Framework** : [Laravel 12](https://laravel.com/)
+*   **Database** : MySQL / SQLite
+*   **UI/UX** : Tailwind CSS & Blade.
+*   **Notifications** : Système de mail transactionnel pour le suivi des statuts.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🚀 Installation & Configuration
 
-## Security Vulnerabilities
+```bash
+# 1. Installation
+composer install
+cp .env.example .env
+php artisan key:generate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 2. Base de données
+php artisan migrate --seed
 
-## License
+# 3. Lancement
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 📄 Licence
+Ce projet est sous licence MIT. Développé par **BELLOX**.
