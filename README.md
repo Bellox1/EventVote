@@ -1,59 +1,84 @@
-# 🗳️ EventVote - Système de Vote Événementiel & Paiement Intégré
+# 🗳️ EventVote - Plateforme Professionnelle de Votes Événementiels
 
-**EventVote** est une plateforme haut de gamme spécialisée dans la gestion de concours et de votes événementiels (Miss, Awards, Compétitions). Elle est conçue pour supporter un engagement massif tout en régulant les flux de votes pour garantir une compétition équitable.
-
----
-
-## 👥 Les Acteurs du Système
-
-La plateforme orchestre 4 types de profils avec des privilèges dédiés :
-
-1.  **🛡️ Super Administrateur** : Modère la plateforme, valide les nouvelles campagnes et dispose d'une vue d'ensemble sur toutes les statistiques.
-2.  **🏢 Organisateur (Promoteur)** : Crée et personnalise ses propres campagnes, gère ses candidats et suit le chiffre d'affaires généré par ses événements.
-3.  **🌟 Candidat** : Participe aux événements, dispose d'un profil multimédia et accède à ses statistiques de votes personnelles pour suivre sa popularité.
-4.  **🗳️ Votant (Public)** : Le cœur du système. Il soutient ses candidats favoris via des votes gratuits ou payants.
+**EventVote** est une solution complète de gestion de votes et de sondages pour événements, développée avec Laravel. Elle permet aux organisateurs de créer des campagnes, aux candidats de se présenter et aux votants de s'exprimer de manière sécurisée et contrôlée.
 
 ---
 
-## 🌟 Régulation & Équité des Votes
+## 📸 Aperçus de la Plateforme
 
-Le système applique des règles de vote intelligentes pour maximiser l'engagement tout en évitant les abus :
-*   **🔋 Soutien Fidèle** : Chaque fan peut voter jusqu'à un **maximum de 100 fois** par campagne.
-*   **⏱️ Délai de Courtoisie** : Un intervalle de **60 secondes (1 minute)** est requis entre chaque vote pour garantir une compétition saine.
-*   **💳 Votes Premium** : Système monétisé avec validation automatique pour un comptage instantané des points.
+<p align="center">
+  <img src="Demo/1.png" width="30%" />
+  <img src="Demo/2.png" width="30%" />
+  <img src="Demo/3.png" width="30%" />
+  <br />
+  <img src="Demo/4.png" width="30%" />
+  <img src="Demo/5.png" width="30%" />
+  <img src="Demo/6.png" width="30%" />
+  <br />
+  <img src="Demo/7.png" width="30%" />
+  <img src="Demo/8.png" width="30%" />
+  <img src="Demo/9.png" width="30%" />
+  <br />
+  <img src="Demo/10.png" width="30%" />
+  <img src="Demo/11.png" width="30%" />
+  <img src="Demo/12.png" width="30%" />
+  <br />
+  <img src="Demo/13.png" width="30%" />
+  <img src="Demo/14.png" width="30%" />
+  <img src="Demo/15.png" width="30%" />
+  <br />
+  <img src="Demo/16.png" width="30%" />
+  <img src="Demo/17.png" width="30%" />
+  <img src="Demo/18.png" width="30%" />
+  <br />
+  <img src="Demo/19.png" width="30%" />
+  <img src="Demo/20.png" width="30%" />
+  <img src="Demo/21.png" width="30%" />
+  <br />
+  <img src="Demo/22.png" width="30%" />
+  <img src="Demo/23.png" width="30%" />
+  <img src="Demo/24.png" width="30%" />
+  <br />
+  <img src="Demo/25.png" width="30%" />
+</p>
 
 ---
 
-## ✨ Fonctionnalités Avancées
+## 🎭 Acteurs du Système
 
-*   **🏆 CMS de Campagnes** : Cycle complet de gestion (Slug unique, Codes de participation, Tracking des visites).
-*   **👨‍💼 Workflow de Candidature** : Modération fluide des dossiers (En attente / Accepté / Rejeté).
-*   **🎥 Galerie Immersive** : Profils enrichis avec vidéos (YouTube/Vimeo) et photos HD.
-*   **📈 Dashboard Analytics** : Graphiques en temps réel sur 12h, top ranking et breakdown de l'activité des votants.
+1.  **🦸 Super Admin** : Gestion globale, création de campagnes et supervision des comptes promoteurs.
+2.  **👨‍💼 Organisateur (Promoteur)** : Création et gestion de ses campagnes, ajout de candidats et suivi des statistiques en temps réel.
+3.  **👤 Candidat** : Profil public, présentation et réception des votes.
+4.  **🗳️ Votant** : Participation sécurisée aux campagnes avec restrictions de vote.
+
+---
+
+## 🛡️ Règles de Vote & Sécurité
+
+Pour garantir l'intégrité des résultats, le système impose des règles strictes :
+*   **⏳ Cooldown de 1 minute** : Un délai d'une minute est imposé entre chaque vote pour un même utilisateur/session.
+*   **🚫 Limite de 100 Votes** : Un utilisateur (identifié par session/fingerprint) est limité à un maximum de **100 votes par campagne**.
+*   **💳 Paiement Intégré** : Possibilité de coupler les votes à un système de paiement.
 
 ---
 
 ## 🛠️ Stack Technique
 
-*   **Framework** : [Laravel 12](https://laravel.com/)
-*   **Database** : MySQL / SQLite
-*   **UI/UX** : Tailwind CSS & Blade.
-*   **Notifications** : Système de mail transactionnel pour le suivi des statuts.
+*   **Backend** : Laravel 11 (PHP 8.2+)
+*   **Infrastructure** : Système de migrations robuste, Policies d'accès et Gates de sécurité.
+*   **UI** : Blade Templates avec composants responsives.
 
 ---
 
-## 🚀 Installation & Configuration
+## 🚀 Installation Express
 
 ```bash
-# 1. Installation
 composer install
+npm install && npm run build
 cp .env.example .env
 php artisan key:generate
-
-# 2. Base de données
 php artisan migrate --seed
-
-# 3. Lancement
+php artisan storage:link
 php artisan serve
 ```
 
